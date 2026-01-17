@@ -193,7 +193,8 @@ const App = () => {
                 wind: Math.round(data.current.wind_speed_10m),
                 windDir: getWindDirection(data.current.wind_direction_10m),
                 pressure: Math.round(data.current.surface_pressure),
-                precipProb: data.current.precipitation_probability || 0, // Czasem API zwraca null jeśli brak danych
+                // Używamy maksymalnej szansy na opady dla dzisiejszego dnia (bardziej przydatne niż "w tej chwili")
+                precipProb: data.daily.precipitation_probability_max[0] || 0,
                 forecast: forecast
             });
 
