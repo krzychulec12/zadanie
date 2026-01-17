@@ -29,4 +29,4 @@ Aplikacja umożliwia sprawdzanie pogody dla dowolnego miasta na świecie. Zosta�
 3.  To wszystko! Nie musisz nic instalować.
 
 ---
-*Created by Kirstof's AI Assistant*
+
