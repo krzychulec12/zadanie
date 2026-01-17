@@ -207,7 +207,7 @@ const App = () => {
                 throw new Error("Nie znaleziono miasta.");
             }
 
-            const { latitude, longitude, name } = geoData.results[0];
+            const { latitude, longitude, name, country_code } = geoData.results[0];
 
             // Added hourly variables
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
@@ -226,6 +226,7 @@ const App = () => {
 
             setWeatherData({
                 city: name,
+                countryCode: country_code ? country_code.toLowerCase() : null, // Extract and lowercase country code
                 // Current data (default)
                 current: {
                     temp: Math.round(data.current.temperature_2m),
@@ -272,6 +273,7 @@ const App = () => {
             const hourly = getHourlyData(weatherData.hourly, selectedHour);
             displayData = {
                 city: weatherData.city,
+                countryCode: weatherData.countryCode, // Przekazujemy kod kraju
                 temp: hourly.temp,
                 condition: getWeatherDescription(hourly.code),
                 humidity: hourly.humidity,
@@ -284,6 +286,7 @@ const App = () => {
             // Show current data
             displayData = {
                 city: weatherData.city,
+                countryCode: weatherData.countryCode, // Przekazujemy kod kraju
                 ...weatherData.current
             };
         }
