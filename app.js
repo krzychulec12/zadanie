@@ -14,18 +14,25 @@ const SearchBar = ({ city, setCity, onSearch }) => {
                 placeholder="Wpisz nazwę miasta..."
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && onSearch()}
             />
             <button onClick={onSearch}>Szukaj</button>
         </div>
     );
 };
 
-const WeatherCard = ({ data }) => {
+const WeatherCard = ({ data, onAddFavorite, isFavorite }) => {
     return (
         <div className="weather-card">
             <h2>{data.city}</h2>
             <div className="temperature">{data.temp}°C</div>
             <p className="condition">{data.condition}</p>
+            <button
+                className={`favorite-btn ${isFavorite ? 'active' : ''}`}
+                onClick={onAddFavorite}
+            >
+                {isFavorite ? '❤️ Usuń z ulubionych' : '🤍 Dodaj do ulubionych'}
+            </button>
         </div>
     );
 };
@@ -40,6 +47,24 @@ const WeatherDetails = ({ data }) => {
             <div className="detail-item">
                 <span>💨 Wiatr</span>
                 <strong>{data.wind} km/h</strong>
+            </div>
+        </div>
+    );
+};
+
+const FavoritesList = ({ favorites, onSelect, onRemove }) => {
+    if (favorites.length === 0) return null;
+
+    return (
+        <div className="favorites-section">
+            <h3>Twoje Ulubione</h3>
+            <div className="favorites-list">
+                {favorites.map(city => (
+                    <div key={city} className="favorite-item">
+                        <span onClick={() => onSelect(city)}>{city}</span>
+                        <button onClick={() => onRemove(city)}>❌</button>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -75,17 +100,32 @@ const App = () => {
     const [weatherData, setWeatherData] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(null);
+    const [favorites, setFavorites] = React.useState([]);
 
-    const handleSearch = async () => {
-        if (!city) return;
+    // Ładowanie ulubionych przy starcie
+    React.useEffect(() => {
+        const saved = localStorage.getItem('skycast_favorites');
+        if (saved) {
+            setFavorites(JSON.parse(saved));
+        }
+    }, []);
+
+    // Zapisywanie ulubionych
+    const saveFavorites = (newFavorites) => {
+        setFavorites(newFavorites);
+        localStorage.setItem('skycast_favorites', JSON.stringify(newFavorites));
+    };
+
+    const fetchWeather = async (searchCity) => {
+        if (!searchCity) return;
 
         setLoading(true);
         setError(null);
         setWeatherData(null);
+        setCity(searchCity); // Aktualizuj input
 
         try {
-            // 1. Znajdź współrzędne miasta (Geocoding)
-            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}&count=1&language=pl&format=json`);
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
             const geoData = await geoRes.json();
 
             if (!geoData.results) {
@@ -94,11 +134,9 @@ const App = () => {
 
             const { latitude, longitude, name } = geoData.results[0];
 
-            // 2. Pobierz pogodę dla współrzędnych
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`);
             const weatherData = await weatherRes.json();
 
-            // 3. Zapisz dane
             setWeatherData({
                 city: name,
                 temp: Math.round(weatherData.current.temperature_2m),
@@ -114,20 +152,47 @@ const App = () => {
         }
     };
 
+    const toggleFavorite = () => {
+        if (!weatherData) return;
+
+        const currentCity = weatherData.city;
+        if (favorites.includes(currentCity)) {
+            saveFavorites(favorites.filter(c => c !== currentCity));
+        } else {
+            saveFavorites([...favorites, currentCity]);
+        }
+    };
+
+    const removeFavorite = (cityToRemove) => {
+        saveFavorites(favorites.filter(c => c !== cityToRemove));
+    };
+
+    const isFavorite = weatherData && favorites.includes(weatherData.city);
+
     return (
         <div className="container">
             <Header />
-            <SearchBar city={city} setCity={setCity} onSearch={handleSearch} />
+            <SearchBar city={city} setCity={setCity} onSearch={() => fetchWeather(city)} />
 
             {loading && <p>Ładowanie...</p>}
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
             {weatherData && (
                 <>
-                    <WeatherCard data={weatherData} />
+                    <WeatherCard
+                        data={weatherData}
+                        onAddFavorite={toggleFavorite}
+                        isFavorite={isFavorite}
+                    />
                     <WeatherDetails data={weatherData} />
                 </>
             )}
+
+            <FavoritesList
+                favorites={favorites}
+                onSelect={fetchWeather}
+                onRemove={removeFavorite}
+            />
         </div>
     );
 };

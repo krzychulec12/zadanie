@@ -112,3 +112,79 @@ body {
     font-size: 1.1rem;
     color: #333;
 }
+
+/* Przycisk Ulubione */
+.favorite-btn {
+    margin-top: 15px;
+    padding: 8px 16px;
+    border: 2px solid #ff6b6b;
+    background: transparent;
+    color: #ff6b6b;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.favorite-btn.active {
+    background: #ff6b6b;
+    color: white;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Lista Ulubionych */
+.favorites-section {
+    margin-top: 3rem;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+
+.favorites-section h3 {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.favorites-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.favorite-item {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.favorite-item span {
+    cursor: pointer;
+}
+
+.favorite-item span:hover {
+    color: #74ebd5;
+    text-decoration: underline;
+}
+
+.favorite-item button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px;
+    opacity: 0.6;
+}
+
+.favorite-item button:hover {
+    opacity: 1;
+}
