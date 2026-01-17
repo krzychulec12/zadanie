@@ -315,27 +315,38 @@ const App = () => {
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 const { latitude, longitude } = position.coords;
+                let name = "Twoja lokalizacja";
+                let country_code = null;
+
                 try {
-                    // Reverse Geocoding to get City Name
+                    // Próbujemy pobrać nazwę miasta (Reverse Geocoding)
+                    // Jeśli to się nie uda (np. AdBlock, błąd sieci), to i tak pobierzemy pogodę dla współrzędnych
                     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&language=pl&format=json`);
-                    const geoData = await geoRes.json();
-
-                    const name = geoData.results ? geoData.results[0].name : "Twoja lokalizacja";
-                    const country_code = geoData.results ? geoData.results[0].country_code : null;
-
-                    setCity(name); // Update input with found city name
-                    await fetchDataByCoords(latitude, longitude, name, country_code);
-
+                    if (geoRes.ok) {
+                        const geoData = await geoRes.json();
+                        if (geoData.results && geoData.results[0]) {
+                            name = geoData.results[0].name;
+                            country_code = geoData.results[0].country_code;
+                        }
+                    }
                 } catch (err) {
-                    console.error("Błąd lokalizacji:", err);
-                    setError(`Błąd lokalizacji: ${err.message}`);
+                    console.warn("Nie udało się pobrać nazwy miasta z lokalizacji (używam domyślnej nazwy):", err);
+                    // Nie przerywamy! Kontynuujemy pobieranie pogody.
+                }
+
+                try {
+                    setCity(name);
+                    await fetchDataByCoords(latitude, longitude, name, country_code);
+                } catch (err) {
+                    console.error("Krytyczny błąd pobierania pogody dla lokalizacji:", err);
+                    setError(`Nie udało się pobrać pogody: ${err.message}`);
                 } finally {
                     setLoading(false);
                 }
             },
             (err) => {
-                console.error("Błąd geolokalizacji:", err);
-                setError(`Nie udało się uzyskać lokalizacji (${err.message}). Upewnij się, że używasz HTTPS lub localhost.`);
+                console.error("Błąd geolokalizacji (przeglądarka):", err);
+                setError(`Nie udało się uzyskać lokalizacji (${err.message}). Sprawdź uprawnienia.`);
                 setLoading(false);
             }
         );
