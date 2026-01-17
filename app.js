@@ -6,7 +6,7 @@ const Header = () => {
     );
 };
 
-const SearchBar = ({ city, setCity, onSearch }) => {
+const SearchBar = ({ city, setCity, onSearch, onLocation }) => {
     return (
         <div className="search-bar">
             <input
@@ -16,6 +16,7 @@ const SearchBar = ({ city, setCity, onSearch }) => {
                 onChange={(e) => setCity(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && onSearch()}
             />
+            <button onClick={onLocation} className="location-btn" title="Twoja lokalizacja">📍</button>
             <button onClick={onSearch}>Szukaj</button>
         </div>
     );
