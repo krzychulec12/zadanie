@@ -1,7 +1,7 @@
 const Header = () => {
     return (
         <header className="header">
-            <h1>🌥️ SkyCast</h1>
+            <h1>🌥️ Pogoda z Kirstofem</h1>
         </header>
     );
 };
