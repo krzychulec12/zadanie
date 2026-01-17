@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>SkyCast Weather App</title>
+    <!-- Style -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- React & ReactDOM (Development Version) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Babel (umożliwia pisanie JSX w przeglądarce) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
+
 <body>
-    
+    <div id="root"></div>
+
+    <!-- Główny plik aplikacji (typ text/babel jest kluczowy!) -->
+    <script type="text/babel" src="app.js"></script>
 </body>
+
 </html>
