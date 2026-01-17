@@ -24,7 +24,17 @@ const SearchBar = ({ city, setCity, onSearch }) => {
 const WeatherCard = ({ data, onAddFavorite, isFavorite }) => {
     return (
         <div className="weather-card">
-            <h2>{data.city}</h2>
+            <h2>
+                {data.city}
+                {data.countryCode && (
+                    <img
+                        src={`https://flagcdn.com/h40/${data.countryCode}.png`}
+                        alt="flag"
+                        title={`Kraj: ${data.countryCode.toUpperCase()}`}
+                        style={{ marginLeft: '10px', height: '24px', borderRadius: '4px', verticalAlign: 'middle', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
+                    />
+                )}
+            </h2>
             <div className="temperature">{data.temp}°C</div>
             <p className="condition">{data.condition}</p>
             <button
