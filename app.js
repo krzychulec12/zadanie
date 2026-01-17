@@ -327,13 +327,15 @@ const App = () => {
                     await fetchDataByCoords(latitude, longitude, name, country_code);
 
                 } catch (err) {
-                    setError("Nie udało się pobrać danych lokalizacyjnych.");
+                    console.error("Błąd lokalizacji:", err);
+                    setError(`Błąd lokalizacji: ${err.message}`);
                 } finally {
                     setLoading(false);
                 }
             },
-            () => {
-                setError("Nie udało się uzyskać Twojej lokalizacji. Sprawdź uprawnienia.");
+            (err) => {
+                console.error("Błąd geolokalizacji:", err);
+                setError(`Nie udało się uzyskać lokalizacji (${err.message}). Upewnij się, że używasz HTTPS lub localhost.`);
                 setLoading(false);
             }
         );
