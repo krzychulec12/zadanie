@@ -75,7 +75,7 @@ const ForecastList = ({ forecast }) => {
 
     return (
         <div className="forecast-section">
-            <h3>Prognoza na 3 dni</h3>
+            <h3>Prognoza na kolejne dni</h3>
             <div className="forecast-grid">
                 {forecast.map((day, index) => (
                     <div key={index} className="forecast-item">
@@ -233,7 +233,10 @@ const App = () => {
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
             const data = await weatherRes.json();
 
-            const forecast = data.daily.time.slice(1, 4).map((time, index) => {
+            // Formatowanie prognozy (kolejne dni)
+            // Open-Meteo zwraca 7 dni domyślnie (indeksy 0-6).
+            // slice(1) bierze wszystko od jutra do końca.
+            const forecast = data.daily.time.slice(1).map((time, index) => {
                 const i = index + 1;
                 return {
                     date: new Date(time).toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric' }),

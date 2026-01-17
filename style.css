@@ -206,6 +206,8 @@ body {
     display: flex;
     justify-content: space-between;
     gap: 10px;
+    flex-wrap: wrap;
+    /* Pozwól elementom zawijać się */
 }
 
 .forecast-item {
@@ -214,6 +216,9 @@ body {
     align-items: center;
     gap: 5px;
     font-size: 0.9rem;
+    min-width: 80px;
+    /* Minimalna szerokość, żeby nie były zbyt ściśnięte */
+    flex: 1;
 }
 
 .forecast-item .date {
