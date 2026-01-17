@@ -128,11 +128,17 @@ const getWeatherDescription = (code) => {
         71: 'Śnieg ❄️',
         73: 'Umiarkowany śnieg ❄️',
         75: 'Intensywny śnieg ❄️',
+        77: 'Ziarnisty śnieg ❄️',
+        80: 'Przelotne opady deszczu ☔',
+        81: 'Umiarkowane opady deszczu ☔',
+        82: 'Gwałtowne opady deszczu ☔',
+        85: 'Przelotne opady śniegu ❄️',
+        86: 'Intensywne opady śniegu ❄️',
         95: 'Burza ⚡',
         96: 'Burza z gradem ⛈️',
         99: 'Burza z gradem ⛈️'
     };
-    return codes[code] || 'Nieznana pogoda';
+    return codes[code] || 'Nieznana pogoda ❓';
 };
 
 // Tłumaczenie kierunku wiatru
