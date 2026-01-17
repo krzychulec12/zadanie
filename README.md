@@ -9,7 +9,9 @@ Aplikacja umożliwia sprawdzanie pogody dla dowolnego miasta na świecie. Zosta�
 ## ⚡ Funkcjonalności
 
 *   **Wyszukiwanie Miast**: Wpisz nazwę i sprawdź pogodę. Obok miasta wyświetla się flaga kraju.
+*   **📍 Twoja Lokalizacja**: Automatyczne wykrywanie miasta i pogody dla Twojego położenia (z obsługą błędów).
 *   **Aktualna Pogoda**: Temperatura, opis, wilgotność, wiatr (z kierunkiem), ciśnienie.
+*   **🍃 Jakość Powietrza (AQI)**: Monitorowanie zanieczyszczenia powietrza (dane CAQI) z kolorowym wskaźnikiem.
 *   **Pogoda Godzinowa**: Suwak pozwalający sprawdzić prognozę na każdą godzinę.
 *   **Prognoza na 7 Dni**: Długoterminowa prognoza z temperaturami min/max i szansą na deszcz.
 *   **System Ulubionych**: Dodawaj miasta do ulubionych (serduszko), aby mieć do nich szybki dostęp. Lista zapisuje się w przeglądarce.
