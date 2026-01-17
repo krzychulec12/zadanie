@@ -66,6 +66,14 @@ const WeatherDetails = ({ data }) => {
                 <span>☔ Szansa na deszcz</span>
                 <strong>{data.precipProb}%</strong>
             </div>
+            {data.aqi !== undefined && (
+                <div className="detail-item">
+                    <span>🍃 Jakość powietrza</span>
+                    <strong style={{ color: getAQIDescription(data.aqi).color }}>
+                        {getAQIDescription(data.aqi).text} (AQI: {data.aqi})
+                    </strong>
+                </div>
+            )}
         </div>
     );
 };
@@ -190,6 +198,15 @@ const getHourlyData = (hourly, hour) => {
     };
 };
 
+// Helper to interpret AQI (European CAQI)
+const getAQIDescription = (aqi) => {
+    if (aqi <= 25) return { text: 'Bardzo dobra 🟢', color: '#57cc99' };
+    if (aqi <= 50) return { text: 'Dobra 🟢', color: '#80ed99' };
+    if (aqi <= 75) return { text: 'Umiarkowana 🟡', color: '#ffeb3b' };
+    if (aqi <= 100) return { text: 'Zła 🟠', color: '#ff9800' };
+    return { text: 'Bardzo zła 🔴', color: '#ff5252' };
+};
+
 const App = () => {
     const [city, setCity] = React.useState('');
     const [weatherData, setWeatherData] = React.useState(null);
@@ -229,13 +246,16 @@ const App = () => {
 
             const { latitude, longitude, name, country_code } = geoData.results[0];
 
-            // Added hourly variables
+            // 1. Weather Data
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
             const data = await weatherRes.json();
 
-            // Formatowanie prognozy (kolejne dni)
-            // Open-Meteo zwraca 7 dni domyślnie (indeksy 0-6).
-            // slice(1) bierze wszystko od jutra do końca.
+            // 2. Air Quality Data
+            const airRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&current=european_aqi`);
+            const airData = await airRes.json();
+            const aqi = airData.current ? airData.current.european_aqi : null;
+
+            // Format forecast
             const forecast = data.daily.time.slice(1).map((time, index) => {
                 const i = index + 1;
                 return {
@@ -249,8 +269,7 @@ const App = () => {
 
             setWeatherData({
                 city: name,
-                countryCode: country_code ? country_code.toLowerCase() : null, // Extract and lowercase country code
-                // Current data (default)
+                countryCode: country_code ? country_code.toLowerCase() : null,
                 current: {
                     temp: Math.round(data.current.temperature_2m),
                     condition: getWeatherDescription(data.current.weather_code),
@@ -258,9 +277,9 @@ const App = () => {
                     wind: Math.round(data.current.wind_speed_10m),
                     windDir: getWindDirection(data.current.wind_direction_10m),
                     pressure: Math.round(data.current.surface_pressure),
-                    precipProb: data.daily.precipitation_probability_max[0] || 0
+                    precipProb: data.daily.precipitation_probability_max[0] || 0,
+                    aqi: aqi // Store AQI
                 },
-                // Raw hourly data to parse later
                 hourly: data.hourly,
                 forecast: forecast
             });
@@ -296,20 +315,21 @@ const App = () => {
             const hourly = getHourlyData(weatherData.hourly, selectedHour);
             displayData = {
                 city: weatherData.city,
-                countryCode: weatherData.countryCode, // Przekazujemy kod kraju
+                countryCode: weatherData.countryCode,
                 temp: hourly.temp,
                 condition: getWeatherDescription(hourly.code),
                 humidity: hourly.humidity,
                 wind: hourly.wind,
                 windDir: getWindDirection(hourly.windDir),
                 pressure: hourly.pressure,
-                precipProb: hourly.precipProb
+                precipProb: hourly.precipProb,
+                aqi: weatherData.current.aqi // Show current AQI even for hourly view (simplification)
             };
         } else {
             // Show current data
             displayData = {
                 city: weatherData.city,
-                countryCode: weatherData.countryCode, // Przekazujemy kod kraju
+                countryCode: weatherData.countryCode,
                 ...weatherData.current
             };
         }
