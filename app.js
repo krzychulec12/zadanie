@@ -131,12 +131,52 @@ const getWindDirection = (degrees) => {
     return directions[Math.round(degrees / 45) % 8];
 };
 
+const HourSelector = ({ selectedHour, onChange }) => {
+    return (
+        <div className="hour-selector">
+            <label>Sprawdź godzinę: <strong>{selectedHour === null ? 'Teraz' : `${selectedHour}:00`}</strong></label>
+            <input
+                type="range"
+                min="0"
+                max="23"
+                value={selectedHour === null ? new Date().getHours() : selectedHour}
+                onChange={(e) => onChange(parseInt(e.target.value))}
+            />
+            <div className="hour-labels">
+                <span>00:00</span>
+                <span>12:00</span>
+                <span>23:00</span>
+            </div>
+            {selectedHour !== null && (
+                <button className="reset-hour-btn" onClick={() => onChange(null)}>Wróc do "Teraz"</button>
+            )}
+        </div>
+    );
+};
+
+// Helper function to extract hourly data for a specific hour
+const getHourlyData = (hourly, hour) => {
+    // Open-Meteo hourly data starts at 00:00 today. Index = hour.
+    // NOTE: This simple logic assumes we are looking at TODAY's hourly data.
+    // For a robust app, we should match timestamps, but for this simple version index is fine.
+    return {
+        temp: Math.round(hourly.temperature_2m[hour]),
+        code: hourly.weather_code[hour],
+        precipProb: hourly.precipitation_probability[hour],
+        wind: Math.round(hourly.wind_speed_10m[hour]),
+        windDir: hourly.wind_direction_10m[hour],
+        pressure: Math.round(hourly.surface_pressure[hour]),
+        humidity: hourly.relative_humidity_2m[hour]
+    };
+};
+
 const App = () => {
     const [city, setCity] = React.useState('');
     const [weatherData, setWeatherData] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState(null);
     const [favorites, setFavorites] = React.useState([]);
+    const [selectedHour, setSelectedHour] = React.useState(null); // null means "Current/Now"
 
     React.useEffect(() => {
         const saved = localStorage.getItem('skycast_favorites');
@@ -157,6 +197,7 @@ const App = () => {
         setError(null);
         setWeatherData(null);
         setCity(searchCity);
+        setSelectedHour(null); // Reset hour selection on new search
 
         try {
             const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
@@ -168,33 +209,35 @@ const App = () => {
 
             const { latitude, longitude, name } = geoData.results[0];
 
-            // Pobieramy też daily forecast, pressure, wind direction i precipitation
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
+            // Added hourly variables
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
             const data = await weatherRes.json();
 
-            // Formatowanie prognozy (następne 3 dni)
             const forecast = data.daily.time.slice(1, 4).map((time, index) => {
-                // index + 1 ponieważ slice zaczyna on 1 (jutro)
                 const i = index + 1;
                 return {
                     date: new Date(time).toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric' }),
                     maxTemp: Math.round(data.daily.temperature_2m_max[i]),
                     minTemp: Math.round(data.daily.temperature_2m_min[i]),
                     precipProb: data.daily.precipitation_probability_max[i],
-                    icon: getWeatherDescription(data.daily.weather_code[i]).split(' ').pop() // Sama ikona
+                    icon: getWeatherDescription(data.daily.weather_code[i]).split(' ').pop()
                 };
             });
 
             setWeatherData({
                 city: name,
-                temp: Math.round(data.current.temperature_2m),
-                condition: getWeatherDescription(data.current.weather_code),
-                humidity: data.current.relative_humidity_2m,
-                wind: Math.round(data.current.wind_speed_10m),
-                windDir: getWindDirection(data.current.wind_direction_10m),
-                pressure: Math.round(data.current.surface_pressure),
-                // Używamy maksymalnej szansy na opady dla dzisiejszego dnia (bardziej przydatne niż "w tej chwili")
-                precipProb: data.daily.precipitation_probability_max[0] || 0,
+                // Current data (default)
+                current: {
+                    temp: Math.round(data.current.temperature_2m),
+                    condition: getWeatherDescription(data.current.weather_code),
+                    humidity: data.current.relative_humidity_2m,
+                    wind: Math.round(data.current.wind_speed_10m),
+                    windDir: getWindDirection(data.current.wind_direction_10m),
+                    pressure: Math.round(data.current.surface_pressure),
+                    precipProb: data.daily.precipitation_probability_max[0] || 0
+                },
+                // Raw hourly data to parse later
+                hourly: data.hourly,
                 forecast: forecast
             });
 
@@ -221,6 +264,31 @@ const App = () => {
 
     const isFavorite = weatherData && favorites.includes(weatherData.city);
 
+    // Determine what data to show (Current vs Hourly)
+    let displayData = null;
+    if (weatherData) {
+        if (selectedHour !== null) {
+            // Show hourly data
+            const hourly = getHourlyData(weatherData.hourly, selectedHour);
+            displayData = {
+                city: weatherData.city,
+                temp: hourly.temp,
+                condition: getWeatherDescription(hourly.code),
+                humidity: hourly.humidity,
+                wind: hourly.wind,
+                windDir: getWindDirection(hourly.windDir),
+                pressure: hourly.pressure,
+                precipProb: hourly.precipProb
+            };
+        } else {
+            // Show current data
+            displayData = {
+                city: weatherData.city,
+                ...weatherData.current
+            };
+        }
+    }
+
     return (
         <div className="container">
             <Header />
@@ -229,14 +297,16 @@ const App = () => {
             {loading && <p>Ładowanie...</p>}
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
-            {weatherData && (
+            {weatherData && displayData && (
                 <>
+                    <HourSelector selectedHour={selectedHour} onChange={setSelectedHour} />
+
                     <WeatherCard
-                        data={weatherData}
+                        data={displayData}
                         onAddFavorite={toggleFavorite}
                         isFavorite={isFavorite}
                     />
-                    <WeatherDetails data={weatherData} />
+                    <WeatherDetails data={displayData} />
                     <ForecastList forecast={weatherData.forecast} />
                 </>
             )}

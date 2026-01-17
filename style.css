@@ -333,3 +333,52 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.4);
 }
+
+/* Hour Selector */
+.hour-selector {
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.hour-selector label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.hour-selector label strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+
+.hour-selector input[type="range"] {
+    width: 100%;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.hour-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 10px;
+}
+
+.reset-hour-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.reset-hour-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
