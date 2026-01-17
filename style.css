@@ -109,6 +109,18 @@ body {
     background: #fff;
 }
 
+.search-bar .location-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 0 15px;
+    margin-right: 5px;
+    font-size: 1.2rem;
+}
+
+.search-bar .location-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
 /* Weather Card */
 .weather-card {
     margin-bottom: 2rem;

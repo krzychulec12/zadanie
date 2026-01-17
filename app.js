@@ -227,25 +227,9 @@ const App = () => {
         localStorage.setItem('skycast_favorites', JSON.stringify(newFavorites));
     };
 
-    const fetchWeather = async (searchCity) => {
-        if (!searchCity) return;
-
-        setLoading(true);
-        setError(null);
-        setWeatherData(null);
-        setCity(searchCity);
-        setSelectedHour(null); // Reset hour selection on new search
-
+    // Reusable function to fetch weather data given coordinates
+    const fetchDataByCoords = async (latitude, longitude, name, countryCode) => {
         try {
-            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
-            const geoData = await geoRes.json();
-
-            if (!geoData.results) {
-                throw new Error("Nie znaleziono miasta.");
-            }
-
-            const { latitude, longitude, name, country_code } = geoData.results[0];
-
             // 1. Weather Data
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
             const data = await weatherRes.json();
@@ -269,7 +253,7 @@ const App = () => {
 
             setWeatherData({
                 city: name,
-                countryCode: country_code ? country_code.toLowerCase() : null,
+                countryCode: countryCode ? countryCode.toLowerCase() : null,
                 current: {
                     temp: Math.round(data.current.temperature_2m),
                     condition: getWeatherDescription(data.current.weather_code),
@@ -278,17 +262,80 @@ const App = () => {
                     windDir: getWindDirection(data.current.wind_direction_10m),
                     pressure: Math.round(data.current.surface_pressure),
                     precipProb: data.daily.precipitation_probability_max[0] || 0,
-                    aqi: aqi // Store AQI
+                    aqi: aqi
                 },
                 hourly: data.hourly,
                 forecast: forecast
             });
+        } catch (err) {
+            throw new Error("Błąd pobierania danych pogodowych.");
+        }
+    };
+
+    const fetchWeather = async (searchCity) => {
+        if (!searchCity) return;
+
+        setLoading(true);
+        setError(null);
+        setWeatherData(null);
+        setCity(searchCity);
+        setSelectedHour(null); // Reset hour selection on new search
+
+        try {
+            const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
+            const geoData = await geoRes.json();
+
+            if (!geoData.results) {
+                throw new Error("Nie znaleziono miasta.");
+            }
+
+            const { latitude, longitude, name, country_code } = geoData.results[0];
+
+            await fetchDataByCoords(latitude, longitude, name, country_code);
 
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchUserLocation = () => {
+        if (!navigator.geolocation) {
+            setError("Twoja przeglądarka nie obsługuje geolokalizacji.");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+        setWeatherData(null);
+        setSelectedHour(null);
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    // Reverse Geocoding to get City Name
+                    const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&language=pl&format=json`);
+                    const geoData = await geoRes.json();
+
+                    const name = geoData.results ? geoData.results[0].name : "Twoja lokalizacja";
+                    const country_code = geoData.results ? geoData.results[0].country_code : null;
+
+                    setCity(name); // Update input with found city name
+                    await fetchDataByCoords(latitude, longitude, name, country_code);
+
+                } catch (err) {
+                    setError("Nie udało się pobrać danych lokalizacyjnych.");
+                } finally {
+                    setLoading(false);
+                }
+            },
+            () => {
+                setError("Nie udało się uzyskać Twojej lokalizacji. Sprawdź uprawnienia.");
+                setLoading(false);
+            }
+        );
     };
 
     const toggleFavorite = () => {
@@ -338,7 +385,12 @@ const App = () => {
     return (
         <div className="container">
             <Header />
-            <SearchBar city={city} setCity={setCity} onSearch={() => fetchWeather(city)} />
+            <SearchBar
+                city={city}
+                setCity={setCity}
+                onSearch={() => fetchWeather(city)}
+                onLocation={fetchUserLocation}
+            />
 
             {loading && <p>Ładowanie...</p>}
             {error && <p style={{ color: 'red' }}>{error}</p>}
