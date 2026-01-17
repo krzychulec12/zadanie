@@ -46,7 +46,37 @@ const WeatherDetails = ({ data }) => {
             </div>
             <div className="detail-item">
                 <span>💨 Wiatr</span>
-                <strong>{data.wind} km/h</strong>
+                <strong>{data.wind} km/h {data.windDir}</strong>
+            </div>
+            <div className="detail-item">
+                <span>🔽 Ciśnienie</span>
+                <strong>{data.pressure} hPa</strong>
+            </div>
+            <div className="detail-item">
+                <span>☔ Szansa na deszcz</span>
+                <strong>{data.precipProb}%</strong>
+            </div>
+        </div>
+    );
+};
+
+const ForecastList = ({ forecast }) => {
+    if (!forecast) return null;
+
+    return (
+        <div className="forecast-section">
+            <h3>Prognoza na 3 dni</h3>
+            <div className="forecast-grid">
+                {forecast.map((day, index) => (
+                    <div key={index} className="forecast-item">
+                        <span className="date">{day.date}</span>
+                        <span className="icon">{day.icon}</span>
+                        <div className="temps">
+                            <span className="max">{day.maxTemp}°</span> / <span className="min">{day.minTemp}°</span>
+                        </div>
+                        <span className="rain">☔ {day.precipProb}%</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -95,6 +125,12 @@ const getWeatherDescription = (code) => {
     return codes[code] || 'Nieznana pogoda';
 };
 
+// Tłumaczenie kierunku wiatru
+const getWindDirection = (degrees) => {
+    const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+    return directions[Math.round(degrees / 45) % 8];
+};
+
 const App = () => {
     const [city, setCity] = React.useState('');
     const [weatherData, setWeatherData] = React.useState(null);
@@ -102,7 +138,6 @@ const App = () => {
     const [error, setError] = React.useState(null);
     const [favorites, setFavorites] = React.useState([]);
 
-    // Ładowanie ulubionych przy starcie
     React.useEffect(() => {
         const saved = localStorage.getItem('skycast_favorites');
         if (saved) {
@@ -110,7 +145,6 @@ const App = () => {
         }
     }, []);
 
-    // Zapisywanie ulubionych
     const saveFavorites = (newFavorites) => {
         setFavorites(newFavorites);
         localStorage.setItem('skycast_favorites', JSON.stringify(newFavorites));
@@ -122,7 +156,7 @@ const App = () => {
         setLoading(true);
         setError(null);
         setWeatherData(null);
-        setCity(searchCity); // Aktualizuj input
+        setCity(searchCity);
 
         try {
             const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
@@ -134,15 +168,33 @@ const App = () => {
 
             const { latitude, longitude, name } = geoData.results[0];
 
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code`);
-            const weatherData = await weatherRes.json();
+            // Pobieramy też daily forecast, pressure, wind direction i precipitation
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
+            const data = await weatherRes.json();
+
+            // Formatowanie prognozy (następne 3 dni)
+            const forecast = data.daily.time.slice(1, 4).map((time, index) => {
+                // index + 1 ponieważ slice zaczyna on 1 (jutro)
+                const i = index + 1;
+                return {
+                    date: new Date(time).toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'numeric' }),
+                    maxTemp: Math.round(data.daily.temperature_2m_max[i]),
+                    minTemp: Math.round(data.daily.temperature_2m_min[i]),
+                    precipProb: data.daily.precipitation_probability_max[i],
+                    icon: getWeatherDescription(data.daily.weather_code[i]).split(' ').pop() // Sama ikona
+                };
+            });
 
             setWeatherData({
                 city: name,
-                temp: Math.round(weatherData.current.temperature_2m),
-                condition: getWeatherDescription(weatherData.current.weather_code),
-                humidity: weatherData.current.relative_humidity_2m,
-                wind: weatherData.current.wind_speed_10m
+                temp: Math.round(data.current.temperature_2m),
+                condition: getWeatherDescription(data.current.weather_code),
+                humidity: data.current.relative_humidity_2m,
+                wind: Math.round(data.current.wind_speed_10m),
+                windDir: getWindDirection(data.current.wind_direction_10m),
+                pressure: Math.round(data.current.surface_pressure),
+                precipProb: data.current.precipitation_probability || 0, // Czasem API zwraca null jeśli brak danych
+                forecast: forecast
             });
 
         } catch (err) {
@@ -154,7 +206,6 @@ const App = () => {
 
     const toggleFavorite = () => {
         if (!weatherData) return;
-
         const currentCity = weatherData.city;
         if (favorites.includes(currentCity)) {
             saveFavorites(favorites.filter(c => c !== currentCity));
@@ -185,6 +236,7 @@ const App = () => {
                         isFavorite={isFavorite}
                     />
                     <WeatherDetails data={weatherData} />
+                    <ForecastList forecast={weatherData.forecast} />
                 </>
             )}
 

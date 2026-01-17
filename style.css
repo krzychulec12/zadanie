@@ -188,3 +188,57 @@ body {
 .favorite-item button:hover {
     opacity: 1;
 }
+
+/* Prognoza */
+.forecast-section {
+    margin-top: 2rem;
+    text-align: left;
+}
+
+.forecast-section h3 {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+}
+
+.forecast-grid {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.forecast-item {
+    background: rgba(255, 255, 255, 0.6);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+    flex: 1;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.forecast-item .date {
+    font-weight: bold;
+    color: #333;
+}
+
+.forecast-item .icon {
+    font-size: 1.5rem;
+}
+
+.forecast-item .temps {
+    color: #555;
+}
+
+.forecast-item .max {
+    font-weight: bold;
+}
+
+.forecast-item .rain {
+    font-size: 0.8rem;
+    color: #4a90e2;
+}
