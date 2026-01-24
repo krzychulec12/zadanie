@@ -1,7 +1,7 @@
 # 🌥️ Pogoda z Kirstofem
 Krzysztof Kania
 
-Nowoczesna aplikacja pogodowa stworzona w React (bez Node.js) przy użyciu API Open-Meteo.
+Nowoczesna aplikacja pogodowa stworzona w React przy użyciu API Open-Meteo.
 
 ## 🚀 O Projekcie
 
