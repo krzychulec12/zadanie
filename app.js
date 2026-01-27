@@ -208,13 +208,40 @@ const getAQIDescription = (aqi) => {
     return { text: 'Bardzo zła 🔴', color: '#ff5252' };
 };
 
+// Notification Component
+const NotificationWidget = ({ message, type, onClose }) => {
+    if (!message) return null;
+
+    let icon = 'ℹ️';
+    if (type === 'error') icon = '⚠️';
+    if (type === 'success') icon = '✅';
+
+    return (
+        <div className={`notification-widget ${type}`}>
+            <span>{icon}</span>
+            <span>{message}</span>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', marginLeft: 'auto', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+        </div>
+    );
+};
+
 const App = () => {
     const [city, setCity] = React.useState('');
     const [weatherData, setWeatherData] = React.useState(null);
     const [loading, setLoading] = React.useState(false);
-    const [error, setError] = React.useState(null);
+    // Removed simple error state in favor of notification system
+    const [notification, setNotification] = React.useState(null);
     const [favorites, setFavorites] = React.useState([]);
     const [selectedHour, setSelectedHour] = React.useState(null); // null means "Current/Now"
+
+    // Helper to show notification
+    const showNotification = (message, type = 'info') => {
+        setNotification({ message, type });
+        // Auto hide after 5 seconds
+        setTimeout(() => {
+            setNotification(null);
+        }, 5000);
+    };
 
     React.useEffect(() => {
         const saved = localStorage.getItem('skycast_favorites');
@@ -277,7 +304,7 @@ const App = () => {
         if (!searchCity) return;
 
         setLoading(true);
-        setError(null);
+        setNotification(null);
         setWeatherData(null);
         setCity(searchCity);
         setSelectedHour(null); // Reset hour selection on new search
@@ -295,7 +322,7 @@ const App = () => {
             await fetchDataByCoords(latitude, longitude, name, country_code);
 
         } catch (err) {
-            setError(err.message);
+            showNotification(err.message, 'error');
         } finally {
             setLoading(false);
         }
@@ -303,12 +330,12 @@ const App = () => {
 
     const fetchUserLocation = () => {
         if (!navigator.geolocation) {
-            setError("Twoja przeglądarka nie obsługuje geolokalizacji.");
+            showNotification("Twoja przeglądarka nie obsługuje geolokalizacji.", 'error');
             return;
         }
 
         setLoading(true);
-        setError(null);
+        setNotification(null);
         setWeatherData(null);
         setSelectedHour(null);
 
@@ -330,23 +357,24 @@ const App = () => {
                         }
                     }
                 } catch (err) {
-                    console.warn("Nie udało się pobrać nazwy miasta z lokalizacji (używam domyślnej nazwy):", err);
+                    console.warn("Reverse geo failed", err);
                     // Nie przerywamy! Kontynuujemy pobieranie pogody.
                 }
 
                 try {
                     setCity(name);
                     await fetchDataByCoords(latitude, longitude, name, country_code);
+                    showNotification("Lokalizacja znaleziona!", 'success');
                 } catch (err) {
                     console.error("Krytyczny błąd pobierania pogody dla lokalizacji:", err);
-                    setError(`Nie udało się pobrać pogody: ${err.message}`);
+                    showNotification(`Nie udało się pobrać pogody: ${err.message}`, 'error');
                 } finally {
                     setLoading(false);
                 }
             },
             (err) => {
                 console.error("Błąd geolokalizacji (przeglądarka):", err);
-                setError(`Nie udało się uzyskać lokalizacji (${err.message}). Sprawdź uprawnienia.`);
+                showNotification(`Błąd lokalizacji: ${err.message}. Sprawdź uprawnienia.`, 'error');
                 setLoading(false);
             }
         );
@@ -357,8 +385,10 @@ const App = () => {
         const currentCity = weatherData.city;
         if (favorites.includes(currentCity)) {
             saveFavorites(favorites.filter(c => c !== currentCity));
+            showNotification(`Usunięto ${currentCity} z ulubionych`, 'info');
         } else {
             saveFavorites([...favorites, currentCity]);
+            showNotification(`Dodano ${currentCity} do ulubionych`, 'success');
         }
     };
 
@@ -407,7 +437,15 @@ const App = () => {
             />
 
             {loading && <p>Ładowanie...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+
+            {/* Notification Widget Render */}
+            {notification && (
+                <NotificationWidget
+                    message={notification.message}
+                    type={notification.type}
+                    onClose={() => setNotification(null)}
+                />
+            )}
 
             {weatherData && displayData && (
                 <>
