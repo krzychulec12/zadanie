@@ -525,7 +525,7 @@ const App = () => {
     }
 
     return (
-        <div className="container">
+        <>
             {showEasterEgg && (
                 <VideoOverlay
                     videoId="dQw4w9WgXcQ" // Rick Roll ID
@@ -533,56 +533,33 @@ const App = () => {
                 />
             )}
 
-            <Header />
-            <SearchBar
-                city={city}
-                setCity={setCity}
-                onSearch={() => fetchWeather(city)}
-                onLocation={fetchUserLocation}
-            />
+            data={displayData}
+            onAddFavorite={toggleFavorite}
+            isFavorite={isFavorite}
+                    />
+            <WeatherDetails data={displayData} />
 
-            {loading && <p>Ładowanie...</p>}
-
-            {/* Notification Widget Render */}
-            {notification && (
-                <NotificationWidget
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => setNotification(null)}
+            {/* Weather Map Integration */}
+            {weatherData.coords && (
+                <WeatherMap
+                    lat={weatherData.coords.lat}
+                    lon={weatherData.coords.lon}
+                    code={displayData.code}
+                    timestamp={mapTimestamp}
                 />
             )}
 
-            {weatherData && displayData && (
-                <>
-                    <HourSelector selectedHour={selectedHour} onChange={setSelectedHour} />
+            <ForecastList forecast={weatherData.forecast} />
+        </>
+    )
+}
 
-                    <WeatherCard
-                        data={displayData}
-                        onAddFavorite={toggleFavorite}
-                        isFavorite={isFavorite}
-                    />
-                    <WeatherDetails data={displayData} />
-
-                    {/* Weather Map Integration */}
-                    {weatherData.coords && (
-                        <WeatherMap
-                            lat={weatherData.coords.lat}
-                            lon={weatherData.coords.lon}
-                            code={displayData.code}
-                            timestamp={mapTimestamp}
-                        />
-                    )}
-
-                    <ForecastList forecast={weatherData.forecast} />
-                </>
-            )}
-
-            <FavoritesList
-                favorites={favorites}
-                onSelect={fetchWeather}
-                onRemove={removeFavorite}
-            />
-        </div>
+<FavoritesList
+    favorites={favorites}
+    onSelect={fetchWeather}
+    onRemove={removeFavorite}
+/>
+        </div >
     );
 };
 
