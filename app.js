@@ -208,10 +208,20 @@ const getAQIDescription = (aqi) => {
     return { text: 'Bardzo zła 🔴', color: '#ff5252' };
 };
 
-const WeatherMap = ({ lat, lon }) => {
+// Map Component (Windy.com Embed)
+const WeatherMap = ({ lat, lon, code }) => {
+    // Determine overlay based on weather code
+    let overlay = 'wind'; // default
+
+    // Rain/Snow/Thunderstorm -> Rain overlay
+    if (code >= 51 && code <= 99) overlay = 'rain';
+    // Clouds/Fog -> Clouds overlay
+    else if ((code >= 1 && code <= 3) || code === 45 || code === 48) overlay = 'clouds';
+    // Clear/Sunny -> Temperature overlay
+    else if (code === 0) overlay = 'temp';
+
     // Construct dynamic URL for Windy embed
-    // level=surface, overlay=wind (can be rain, temp, etc.), menu=...
-    const embedUrl = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=10&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1`;
+    const embedUrl = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=10&level=surface&overlay=${overlay}&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1`;
 
     return (
         <div className="weather-map-container">
@@ -302,6 +312,7 @@ const App = () => {
                 coords: { lat: latitude, lon: longitude }, // Store coordinates for map
                 current: {
                     temp: Math.round(data.current.temperature_2m),
+                    code: data.current.weather_code, // Store raw code
                     condition: getWeatherDescription(data.current.weather_code),
                     humidity: data.current.relative_humidity_2m,
                     wind: Math.round(data.current.wind_speed_10m),
@@ -418,6 +429,8 @@ const App = () => {
 
     // Determine what data to show (Current vs Hourly)
     let displayData = null;
+    let mapTimestamp = null; // Prepare timestamp for map
+
     if (weatherData) {
         if (selectedHour !== null) {
             // Show hourly data
@@ -427,13 +440,19 @@ const App = () => {
                 countryCode: weatherData.countryCode,
                 temp: hourly.temp,
                 condition: getWeatherDescription(hourly.code),
+                code: hourly.code,
                 humidity: hourly.humidity,
                 wind: hourly.wind,
                 windDir: getWindDirection(hourly.windDir),
                 pressure: hourly.pressure,
                 precipProb: hourly.precipProb,
-                aqi: weatherData.current.aqi // Show current AQI even for hourly view (simplification)
+                aqi: weatherData.current.aqi
             };
+
+            // Calculate specific timestamp for Today + hour
+            const now = new Date();
+            mapTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate(), selectedHour, 0, 0);
+
         } else {
             // Show current data
             displayData = {
@@ -441,6 +460,7 @@ const App = () => {
                 countryCode: weatherData.countryCode,
                 ...weatherData.current
             };
+            mapTimestamp = null; // 'now'
         }
     }
 
@@ -478,7 +498,12 @@ const App = () => {
 
                     {/* Weather Map Integration */}
                     {weatherData.coords && (
-                        <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} />
+                        <WeatherMap
+                            lat={weatherData.coords.lat}
+                            lon={weatherData.coords.lon}
+                            code={displayData.code}
+                            timestamp={mapTimestamp}
+                        />
                     )}
 
                     <ForecastList forecast={weatherData.forecast} />
