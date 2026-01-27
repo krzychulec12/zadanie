@@ -208,7 +208,6 @@ const getAQIDescription = (aqi) => {
     return { text: 'Bardzo zła 🔴', color: '#ff5252' };
 };
 
-// Map Component (Windy.com Embed)
 const WeatherMap = ({ lat, lon }) => {
     // Construct dynamic URL for Windy embed
     // level=surface, overlay=wind (can be rain, temp, etc.), menu=...
@@ -223,6 +222,8 @@ const WeatherMap = ({ lat, lon }) => {
         </div>
     );
 };
+
+
 
 // Notification Component
 const NotificationWidget = ({ message, type, onClose }) => {
