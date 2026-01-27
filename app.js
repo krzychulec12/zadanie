@@ -208,6 +208,22 @@ const getAQIDescription = (aqi) => {
     return { text: 'Bardzo zła 🔴', color: '#ff5252' };
 };
 
+// Map Component (Windy.com Embed)
+const WeatherMap = ({ lat, lon }) => {
+    // Construct dynamic URL for Windy embed
+    // level=surface, overlay=wind (can be rain, temp, etc.), menu=...
+    const embedUrl = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=10&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1`;
+
+    return (
+        <div className="weather-map-container">
+            <iframe
+                title="Mapa Pogodowa"
+                src={embedUrl}
+            ></iframe>
+        </div>
+    );
+};
+
 // Notification Component
 const NotificationWidget = ({ message, type, onClose }) => {
     if (!message) return null;
@@ -282,6 +298,7 @@ const App = () => {
             setWeatherData({
                 city: name,
                 countryCode: countryCode ? countryCode.toLowerCase() : null,
+                coords: { lat: latitude, lon: longitude }, // Store coordinates for map
                 current: {
                     temp: Math.round(data.current.temperature_2m),
                     condition: getWeatherDescription(data.current.weather_code),
@@ -457,6 +474,12 @@ const App = () => {
                         isFavorite={isFavorite}
                     />
                     <WeatherDetails data={displayData} />
+
+                    {/* Weather Map Integration */}
+                    {weatherData.coords && (
+                        <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} />
+                    )}
+
                     <ForecastList forecast={weatherData.forecast} />
                 </>
             )}
