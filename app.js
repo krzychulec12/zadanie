@@ -256,26 +256,30 @@ const VideoOverlay = ({ videoId, onClose }) => {
     return (
         <div style={{
             position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-            background: 'black', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center'
+            background: 'rgba(0,0,0,0.9)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>
-            <iframe
-                width="100%"
-                height="100%"
-                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0`}
-                title="Easter Egg"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-            ></iframe>
+            <div style={{ width: '80%', maxWidth: '900px', aspectRatio: '16/9', boxShadow: '0 0 50px rgba(0,0,0,0.5)' }}>
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0`}
+                    title="Easter Egg"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    style={{ borderRadius: '15px' }}
+                ></iframe>
+            </div>
             <button
                 onClick={onClose}
                 style={{
-                    position: 'absolute', top: '20px', right: '20px',
-                    background: 'red', color: 'white', border: 'none',
-                    padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer', borderRadius: '5px'
+                    position: 'absolute', top: '30px', right: '30px',
+                    background: 'white', color: 'black', border: 'none',
+                    padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer', borderRadius: '30px',
+                    fontWeight: 'bold', boxShadow: '0 0 15px white'
                 }}
             >
-                ZAMKNIJ (X)
+                ZAMKNIJ
             </button>
         </div>
     );
