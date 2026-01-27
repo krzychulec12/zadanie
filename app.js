@@ -234,7 +234,6 @@ const WeatherMap = ({ lat, lon, code }) => {
 };
 
 
-
 // Notification Component
 const NotificationWidget = ({ message, type, onClose }) => {
     if (!message) return null;
@@ -252,6 +251,36 @@ const NotificationWidget = ({ message, type, onClose }) => {
     );
 };
 
+// Easter Egg Component
+const VideoOverlay = ({ videoId, onClose }) => {
+    return (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+            background: 'black', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }}>
+            <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0`}
+                title="Easter Egg"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+            ></iframe>
+            <button
+                onClick={onClose}
+                style={{
+                    position: 'absolute', top: '20px', right: '20px',
+                    background: 'red', color: 'white', border: 'none',
+                    padding: '10px 20px', fontSize: '1.2rem', cursor: 'pointer', borderRadius: '5px'
+                }}
+            >
+                ZAMKNIJ (X)
+            </button>
+        </div>
+    );
+};
+
 const App = () => {
     const [city, setCity] = React.useState('');
     const [weatherData, setWeatherData] = React.useState(null);
@@ -260,6 +289,8 @@ const App = () => {
     const [notification, setNotification] = React.useState(null);
     const [favorites, setFavorites] = React.useState([]);
     const [selectedHour, setSelectedHour] = React.useState(null); // null means "Current/Now"
+    const [showEasterEgg, setShowEasterEgg] = React.useState(false);
+    const [keySequence, setKeySequence] = React.useState([]);
 
     // Helper to show notification
     const showNotification = (message, type = 'info') => {
@@ -275,6 +306,31 @@ const App = () => {
         if (saved) {
             setFavorites(JSON.parse(saved));
         }
+    }, []);
+
+    // Easter Egg Listener
+    React.useEffect(() => {
+        const handleKeyDown = (e) => {
+            const secretCode = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'];
+
+            setKeySequence(prev => {
+                const updated = [...prev, e.key];
+                // Keep only last N keys where N is length of secret
+                if (updated.length > secretCode.length) {
+                    updated.shift();
+                }
+
+                // Check match
+                if (JSON.stringify(updated) === JSON.stringify(secretCode)) {
+                    setShowEasterEgg(true);
+                    return []; // Reset after trigger
+                }
+                return updated;
+            });
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
     const saveFavorites = (newFavorites) => {
@@ -466,6 +522,13 @@ const App = () => {
 
     return (
         <div className="container">
+            {showEasterEgg && (
+                <VideoOverlay
+                    videoId="dQw4w9WgXcQ" // Rick Roll ID
+                    onClose={() => setShowEasterEgg(false)}
+                />
+            )}
+
             <Header />
             <SearchBar
                 city={city}
