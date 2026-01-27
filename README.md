@@ -33,3 +33,11 @@ Aplikacja umożliwia sprawdzanie pogody dla dowolnego miasta na świecie. Zosta�
 
 ---
 
+## 📄 Licencja i Źródła Danych
+
+*   **Dane Pogodowe**: [Open-Meteo.com](https://open-meteo.com/) (Licencja CC BY 4.0). Do celów niekomercyjnych limit zapytań jest darmowy.
+*   **Flagi**: [FlagCDN](https://flagcdn.com/).
+*   **Ikona**: Wygenerowana automatycznie (AI).
+
+---
+
