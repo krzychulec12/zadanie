@@ -83,6 +83,10 @@ const WeatherDetails = ({ data }) => {
                 <span>🌅 Wschód / Zachód</span>
                 <strong>{data.sunrise} / {data.sunset}</strong>
             </div>
+            <div className="detail-item">
+                <span>🌑 Faza Księżyca</span>
+                <strong>{data.moonPhase}</strong>
+            </div>
         </div>
     );
 };
@@ -221,6 +225,17 @@ const getAQIDescription = (aqi) => {
     return { text: 'Bardzo zła 🔴', color: '#ff5252' };
 };
 
+const getMoonPhaseDescription = (phase) => {
+    if (phase === 0 || phase === 1) return '🌑 Nów';
+    if (phase < 0.25) return '🌒 Wzrastający sierp';
+    if (phase === 0.25) return '🌓 Pierwsza kwadra';
+    if (phase < 0.5) return '🌔 Wzr. garbaty';
+    if (phase === 0.5) return '🌕 Pełnia';
+    if (phase < 0.75) return '🌖 Zan. garbaty';
+    if (phase === 0.75) return '🌗 Ostatnia kwadra';
+    return '🌘 Zanikający sierp';
+};
+
 // Map Component (Windy.com Embed)
 const WeatherMap = ({ lat, lon, code }) => {
     // Determine overlay based on weather code
@@ -301,7 +316,8 @@ const App = () => {
     const fetchDataByCoords = async (latitude, longitude, name, countryCode) => {
         try {
             // 1. Weather Data
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto`);
+            // 1. Weather Data
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,moon_phase&timezone=auto`);
             const data = await weatherRes.json();
 
             // 2. Air Quality Data
@@ -337,6 +353,7 @@ const App = () => {
                     apparentTemp: Math.round(data.current.apparent_temperature),
                     sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+                    moonPhase: getMoonPhaseDescription(data.daily.moon_phase ? data.daily.moon_phase[0] : 0),
                     aqi: aqi
                 },
                 hourly: data.hourly,
