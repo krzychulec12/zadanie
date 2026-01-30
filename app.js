@@ -109,7 +109,7 @@ const WeatherDetails = ({ data }) => {
     );
 };
 
-const ForecastList = ({ forecast }) => {
+const ForecastList = ({ forecast, selectedDayIndex, onSelectDay }) => {
     if (!forecast) return null;
 
     return (
@@ -117,7 +117,12 @@ const ForecastList = ({ forecast }) => {
             <h3>Prognoza na kolejne dni</h3>
             <div className="forecast-grid">
                 {forecast.map((day, index) => (
-                    <div key={index} className="forecast-item">
+                    <div
+                        key={index}
+                        className={`forecast-item ${selectedDayIndex === index + 1 ? 'active' : ''}`}
+                        onClick={() => onSelectDay(index + 1)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         <span className="date">{day.date}</span>
                         <span className="icon">{day.icon}</span>
                         <div className="temps">
@@ -214,20 +219,21 @@ const HourSelector = ({ selectedHour, onChange }) => {
 };
 
 // Helper function to extract hourly data for a specific hour
-const getHourlyData = (hourly, hour) => {
+const getHourlyData = (hourly, hour, dayIndex = 0) => {
+    const offset = dayIndex * 24 + hour;
     return {
-        temp: Math.round(hourly.temperature_2m[hour]),
-        code: hourly.weather_code[hour],
-        precipProb: hourly.precipitation_probability[hour],
-        wind: Math.round(hourly.wind_speed_10m[hour]),
-        windDir: hourly.wind_direction_10m[hour],
-        pressure: Math.round(hourly.surface_pressure[hour]),
-        humidity: hourly.relative_humidity_2m[hour],
-        apparentTemp: Math.round(hourly.apparent_temperature[hour]),
-        uvIndex: hourly.uv_index ? Math.round(hourly.uv_index[hour]) : '-',
-        visibility: hourly.visibility ? (hourly.visibility[hour] / 1000).toFixed(1) : '-',
-        cloudCover: hourly.cloud_cover ? hourly.cloud_cover[hour] : '-',
-        windGusts: hourly.wind_gusts_10m ? Math.round(hourly.wind_gusts_10m[hour]) : '-',
+        temp: Math.round(hourly.temperature_2m[offset]),
+        code: hourly.weather_code[offset],
+        precipProb: hourly.precipitation_probability[offset],
+        wind: Math.round(hourly.wind_speed_10m[offset]),
+        windDir: hourly.wind_direction_10m[offset],
+        pressure: Math.round(hourly.surface_pressure[offset]),
+        humidity: hourly.relative_humidity_2m[offset],
+        apparentTemp: Math.round(hourly.apparent_temperature[offset]),
+        uvIndex: hourly.uv_index ? Math.round(hourly.uv_index[offset]) : '-',
+        visibility: hourly.visibility ? (hourly.visibility[offset] / 1000).toFixed(1) : '-',
+        cloudCover: hourly.cloud_cover ? hourly.cloud_cover[offset] : '-',
+        windGusts: hourly.wind_gusts_10m ? Math.round(hourly.wind_gusts_10m[offset]) : '-',
         sunrise: "-",
         sunset: "-"
     };
@@ -303,6 +309,7 @@ const App = () => {
     const [notification, setNotification] = React.useState(null);
     const [favorites, setFavorites] = React.useState([]);
     const [selectedHour, setSelectedHour] = React.useState(null);
+    const [selectedDayIndex, setSelectedDayIndex] = React.useState(0);
 
     const showNotification = (message, type = 'info') => {
         setNotification({ message, type });
@@ -351,7 +358,7 @@ const App = () => {
                     wind: Math.round(data.current.wind_speed_10m),
                     windDir: getWindDirection(data.current.wind_direction_10m),
                     pressure: Math.round(data.current.surface_pressure),
-                    precipProb: data.daily.precipitation_probability_max[0] || 0,
+                    precipProb: data.current.precipitation_probability || 0,
                     apparentTemp: Math.round(data.current.apparent_temperature),
                     sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
@@ -363,7 +370,8 @@ const App = () => {
                     aqi: aqi
                 },
                 hourly: data.hourly,
-                forecast: forecast
+                forecast: forecast,
+                daily: data.daily // Store full daily data
             });
         } catch (err) {
             throw new Error("Błąd pobierania danych pogodowych.");
@@ -377,6 +385,7 @@ const App = () => {
         setWeatherData(null);
         setCity(searchCity);
         setSelectedHour(null);
+        setSelectedDayIndex(0);
         try {
             const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
             const geoData = await geoRes.json();
@@ -399,6 +408,7 @@ const App = () => {
         setNotification(null);
         setWeatherData(null);
         setSelectedHour(null);
+        setSelectedDayIndex(0);
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 const { latitude, longitude } = pos.coords;
@@ -449,20 +459,22 @@ const App = () => {
     let displayData = null;
     let mapTimestamp = null;
     if (weatherData) {
-        if (selectedHour !== null) {
-            const hourly = getHourlyData(weatherData.hourly, selectedHour);
+        if (selectedHour !== null || selectedDayIndex > 0) {
+            const hour = selectedHour !== null ? selectedHour : 12; // Default to noon if only day is selected
+            const hourly = getHourlyData(weatherData.hourly, hour, selectedDayIndex);
+
             displayData = {
-                city: weatherData.city,
+                city: selectedDayIndex === 0 ? weatherData.city : `${weatherData.city} (${weatherData.forecast[selectedDayIndex - 1].date})`,
                 countryCode: weatherData.countryCode,
                 ...hourly,
                 condition: getWeatherDescription(hourly.code),
                 aqi: weatherData.current.aqi,
-                sunrise: weatherData.current.sunrise,
-                sunset: weatherData.current.sunset,
-                moonPhase: weatherData.current.moonPhase
+                sunrise: selectedDayIndex === 0 ? weatherData.current.sunrise : new Date(weatherData.daily.sunrise[selectedDayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+                sunset: selectedDayIndex === 0 ? weatherData.current.sunset : new Date(weatherData.daily.sunset[selectedDayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+                moonPhase: getMoonPhaseDescription(getMoonPhase(new Date(weatherData.daily.time[selectedDayIndex])))
             };
             const now = new Date();
-            mapTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate(), selectedHour, 0, 0);
+            mapTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate() + selectedDayIndex, hour, 0, 0);
         } else {
             displayData = {
                 city: weatherData.city,
@@ -480,11 +492,26 @@ const App = () => {
             {notification && <NotificationWidget message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
             {weatherData && displayData && (
                 <>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                        <button
+                            className={`favorite-btn ${selectedDayIndex === 0 ? 'active' : ''}`}
+                            onClick={() => { setSelectedDayIndex(0); setSelectedHour(null); }}
+                            style={{ padding: '10px 20px', borderRadius: '15px' }}
+                        >
+                            Dzisiaj
+                        </button>
+                    </div>
+
                     <HourSelector selectedHour={selectedHour} onChange={setSelectedHour} />
+
                     <WeatherCard data={displayData} onAddFavorite={toggleFavorite} isFavorite={isFavorite} />
                     <WeatherDetails data={displayData} />
                     {weatherData.coords && <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} code={displayData.code} />}
-                    <ForecastList forecast={weatherData.forecast} />
+                    <ForecastList
+                        forecast={weatherData.forecast}
+                        selectedDayIndex={selectedDayIndex}
+                        onSelectDay={(idx) => { setSelectedDayIndex(idx); setSelectedHour(null); }}
+                    />
                 </>
             )}
             <FavoritesList favorites={favorites} onSelect={fetchWeather} onRemove={removeFavorite} />

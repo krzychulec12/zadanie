@@ -261,6 +261,25 @@ body {
     min-width: 80px;
     /* Minimalna szerokość, żeby nie były zbyt ściśnięte */
     flex: 1;
+    transition: all 0.3s;
+    padding: 10px;
+    border-radius: 12px;
+}
+
+.forecast-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-5px);
+}
+
+.forecast-item.active {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.forecast-item.active .date {
+    color: white;
 }
 
 .forecast-item .date {
