@@ -273,39 +273,6 @@ const NotificationWidget = ({ message, type, onClose }) => {
     );
 };
 
-const WeatherPresenter = ({ data }) => {
-    const [comment, setComment] = React.useState('');
-    const [visible, setVisible] = React.useState(false);
-
-    const getPresenterState = (code, temp) => {
-        if (code === 0 || code === 1) return { img: 'assets/pogodynka_sun.png', comments: ['Ale piękna pogoda! Idealnie na spacer. ☀️', 'Nie zapomnij o okularach przeciwsłonecznych!', 'Słońce dzisiaj dopisuje!'] };
-        if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { img: 'assets/pogodynka_rain.png', comments: ['Brrr, mokro! Weź parasol ze sobą. ☔', 'Deszczowa aura, idealna na herbatę w domu.', 'Uważaj na kałuże!'] };
-        if ((code >= 71 && code <= 77) || (code >= 85 && code <= 86)) return { img: 'assets/pogodynka_snow.png', comments: ['Pada śnieg! Ubierz się ciepło. ❄️', 'Bałwan sam się nie ulepi!', 'Ślisko na drogach, uważaj na siebie.'] };
-        if (code >= 95) return { img: 'assets/pogodynka_rain.png', comments: ['Uwaga, burza! Lepiej zostań w domu. ⛈️', 'Głośno tam na zewnątrz, prawda?', 'Pamiętaj o zamknięciu okien!'] };
-        return { img: 'assets/pogodynka_clouds.png', comments: ['Trochę pochmurno dzisiaj.', 'Słońce chowa się za chmurami.', 'Mglisto, miej oczy dookoła głowy!'] };
-    };
-
-    const state = getPresenterState(data.code, data.temp);
-
-    React.useEffect(() => {
-        const randomComment = state.comments[Math.floor(Math.random() * state.comments.length)];
-        setComment(randomComment);
-        setVisible(true);
-        const timer = setTimeout(() => setVisible(false), 8000);
-        return () => clearTimeout(timer);
-    }, [data.city, data.code]);
-
-    return (
-        <div className="weather-presenter">
-            <div className={`speech-bubble ${visible ? 'visible' : ''}`}>
-                {comment}
-            </div>
-            <div className="presenter-container">
-                <img src={state.img} alt="Pogodynka" className="presenter-image" style={{ cursor: 'pointer' }} onClick={() => setVisible(!visible)} />
-            </div>
-        </div>
-    );
-};
 
 const App = () => {
     const [city, setCity] = React.useState('');
@@ -492,7 +459,6 @@ const App = () => {
                     <WeatherDetails data={displayData} />
                     {weatherData.coords && <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} code={displayData.code} />}
                     <ForecastList forecast={weatherData.forecast} />
-                    <WeatherPresenter data={displayData} />
                 </>
             )}
             <FavoritesList favorites={favorites} onSelect={fetchWeather} onRemove={removeFavorite} />
