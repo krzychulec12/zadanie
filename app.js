@@ -25,17 +25,6 @@ const SearchBar = ({ city, setCity, onSearch, onLocation }) => {
 const WeatherCard = ({ data, onAddFavorite, isFavorite }) => {
     return (
         <div className="weather-card">
-            <h2>
-                {data.city}
-                {data.countryCode && (
-                    <img
-                        src={`https://flagcdn.com/h40/${data.countryCode.toLowerCase()}.png`}
-                        alt="flag"
-                        title={`Kraj: ${data.countryCode.toUpperCase()}`}
-                        style={{ marginLeft: '10px', height: '24px', borderRadius: '4px', verticalAlign: 'middle', boxShadow: '0 2px 5px rgba(0,0,0,0.2)' }}
-                    />
-                )}
-            </h2>
             <div className="temperature">{data.temp}°C</div>
             <p className="condition">{data.condition}</p>
             <button
@@ -272,17 +261,19 @@ const getMoonPhaseDescription = (phaseIndex) => {
 };
 
 // Map Component (Windy.com Embed)
-const WeatherMap = ({ lat, lon, code }) => {
+const WeatherMap = ({ lat, lon, code, timestamp }) => {
     let overlay = 'wind';
     if (code >= 51 && code <= 99) overlay = 'rain';
     else if ((code >= 1 && code <= 3) || code === 45 || code === 48) overlay = 'clouds';
     else if (code === 0) overlay = 'temp';
 
-    const embedUrl = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=10&level=surface&overlay=${overlay}&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1`;
+    // Force unique URL to trigger iframe reload when timestamp or overlay changes
+    const timeKey = timestamp ? timestamp.getTime() : 'now';
+    const embedUrl = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=10&level=surface&overlay=${overlay}&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1&t=${timeKey}`;
 
     return (
         <div className="weather-map-container">
-            <iframe title="Mapa Pogodowa" src={embedUrl}></iframe>
+            <iframe key={timeKey} title="Mapa Pogodowa" src={embedUrl}></iframe>
         </div>
     );
 };
@@ -326,7 +317,7 @@ const App = () => {
         localStorage.setItem('skycast_favorites', JSON.stringify(newFavorites));
     };
 
-    const fetchDataByCoords = async (latitude, longitude, name, countryCode) => {
+    const fetchDataByCoords = async (latitude, longitude, name, countryCode, admin1) => {
         try {
             const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code,uv_index,visibility,wind_gusts_10m,cloud_cover&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m,uv_index,visibility,wind_gusts_10m,cloud_cover&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max&timezone=auto`);
             const data = await weatherRes.json();
@@ -348,6 +339,7 @@ const App = () => {
 
             setWeatherData({
                 city: name,
+                admin1: admin1,
                 countryCode: countryCode ? countryCode.toLowerCase() : null,
                 coords: { lat: latitude, lon: longitude },
                 current: {
@@ -390,8 +382,8 @@ const App = () => {
             const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${searchCity}&count=1&language=pl&format=json`);
             const geoData = await geoRes.json();
             if (!geoData.results) throw new Error("Nie znaleziono miasta.");
-            const { latitude, longitude, name, country_code } = geoData.results[0];
-            await fetchDataByCoords(latitude, longitude, name, country_code);
+            const { latitude, longitude, name, country_code, admin1 } = geoData.results[0];
+            await fetchDataByCoords(latitude, longitude, name, country_code, admin1);
         } catch (err) {
             showNotification(err.message, 'error');
         } finally {
@@ -426,7 +418,7 @@ const App = () => {
                 } catch (err) { }
                 try {
                     setCity('');
-                    await fetchDataByCoords(latitude, longitude, name, country_code);
+                    await fetchDataByCoords(latitude, longitude, name, country_code, geoData.results?.[0]?.admin1);
                     showNotification("Lokalizacja znaleziona!", 'success');
                 } catch (err) {
                     showNotification("Błąd: " + err.message, 'error');
@@ -488,11 +480,29 @@ const App = () => {
         <div className="container">
             <Header />
             <SearchBar city={city} setCity={setCity} onSearch={() => fetchWeather(city)} onLocation={fetchUserLocation} />
+
             {loading && <p>Ładowanie...</p>}
             {notification && <NotificationWidget message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
+
+            {weatherData && displayData && (
+                <div className="location-header">
+                    <h2>
+                        {weatherData.city}
+                        {weatherData.countryCode && (
+                            <img
+                                src={`https://flagcdn.com/h40/${weatherData.countryCode.toLowerCase()}.png`}
+                                alt="flag"
+                                style={{ marginLeft: '15px', height: '30px', borderRadius: '4px', verticalAlign: 'middle' }}
+                            />
+                        )}
+                    </h2>
+                    {weatherData.admin1 && <p className="province-name">{weatherData.admin1}</p>}
+                </div>
+            )}
+
             {weatherData && displayData && (
                 <>
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                    <div className="top-controls">
                         <button
                             className={`favorite-btn ${selectedDayIndex === 0 ? 'active' : ''}`}
                             onClick={() => { setSelectedDayIndex(0); setSelectedHour(null); }}
@@ -506,7 +516,7 @@ const App = () => {
 
                     <WeatherCard data={displayData} onAddFavorite={toggleFavorite} isFavorite={isFavorite} />
                     <WeatherDetails data={displayData} />
-                    {weatherData.coords && <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} code={displayData.code} />}
+                    {weatherData.coords && <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} code={displayData.code} timestamp={mapTimestamp} />}
                     <ForecastList
                         forecast={weatherData.forecast}
                         selectedDayIndex={selectedDayIndex}
