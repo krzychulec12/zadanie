@@ -60,6 +60,10 @@ const WeatherDetails = ({ data }) => {
                 <strong>{data.wind} km/h {data.windDir}</strong>
             </div>
             <div className="detail-item">
+                <span>🌡️ Odczuwalna</span>
+                <strong>{data.apparentTemp}°C</strong>
+            </div>
+            <div className="detail-item">
                 <span>🔽 Ciśnienie</span>
                 <strong>{data.pressure} hPa</strong>
             </div>
@@ -75,6 +79,10 @@ const WeatherDetails = ({ data }) => {
                     </strong>
                 </div>
             )}
+            <div className="detail-item">
+                <span>🌅 Wschód / Zachód</span>
+                <strong>{data.sunrise} / {data.sunset}</strong>
+            </div>
         </div>
     );
 };
@@ -195,7 +203,12 @@ const getHourlyData = (hourly, hour) => {
         wind: Math.round(hourly.wind_speed_10m[hour]),
         windDir: hourly.wind_direction_10m[hour],
         pressure: Math.round(hourly.surface_pressure[hour]),
-        humidity: hourly.relative_humidity_2m[hour]
+        humidity: hourly.relative_humidity_2m[hour],
+        apparentTemp: Math.round(hourly.apparent_temperature[hour]),
+        // Note: Hourly data doesn't have sunrise/sunset specific to the hour, but we could pass daily if needed.
+        // For now, we'll just omit or keep daily values if we reconstruct the display object correctly.
+        sunrise: "-", // Placeholder or handle in parent
+        sunset: "-"
     };
 };
 
@@ -346,7 +359,7 @@ const App = () => {
     const fetchDataByCoords = async (latitude, longitude, name, countryCode) => {
         try {
             // 1. Weather Data
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`);
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto`);
             const data = await weatherRes.json();
 
             // 2. Air Quality Data
@@ -379,6 +392,9 @@ const App = () => {
                     windDir: getWindDirection(data.current.wind_direction_10m),
                     pressure: Math.round(data.current.surface_pressure),
                     precipProb: data.daily.precipitation_probability_max[0] || 0,
+                    apparentTemp: Math.round(data.current.apparent_temperature),
+                    sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+                    sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     aqi: aqi
                 },
                 hourly: data.hourly,
