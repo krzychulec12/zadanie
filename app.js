@@ -71,6 +71,24 @@ const WeatherDetails = ({ data }) => {
                 <span>☔ Szansa na opady</span>
                 <strong>{data.precipProb}%</strong>
             </div>
+            {data.uvIndex !== undefined && (
+                <div className="detail-item">
+                    <span>☀️ Indeks UV</span>
+                    <strong>{data.uvIndex}</strong>
+                </div>
+            )}
+            <div className="detail-item">
+                <span>👁️ Widoczność</span>
+                <strong>{data.visibility} km</strong>
+            </div>
+            <div className="detail-item">
+                <span>☁️ Zachmurzenie</span>
+                <strong>{data.cloudCover}%</strong>
+            </div>
+            <div className="detail-item">
+                <span>🌬️ Porywy wiatru</span>
+                <strong>{data.windGusts} km/h</strong>
+            </div>
             {data.aqi !== undefined && (
                 <div className="detail-item">
                     <span>🍃 Jakość powietrza</span>
@@ -206,6 +224,10 @@ const getHourlyData = (hourly, hour) => {
         pressure: Math.round(hourly.surface_pressure[hour]),
         humidity: hourly.relative_humidity_2m[hour],
         apparentTemp: Math.round(hourly.apparent_temperature[hour]),
+        uvIndex: hourly.uv_index ? Math.round(hourly.uv_index[hour]) : '-',
+        visibility: hourly.visibility ? (hourly.visibility[hour] / 1000).toFixed(1) : '-',
+        cloudCover: hourly.cloud_cover ? hourly.cloud_cover[hour] : '-',
+        windGusts: hourly.wind_gusts_10m ? Math.round(hourly.wind_gusts_10m[hour]) : '-',
         sunrise: "-",
         sunset: "-"
     };
@@ -299,7 +321,7 @@ const App = () => {
 
     const fetchDataByCoords = async (latitude, longitude, name, countryCode) => {
         try {
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=auto`);
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code,uv_index,visibility,wind_gusts_10m,cloud_cover&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m,uv_index,visibility,wind_gusts_10m,cloud_cover&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max&timezone=auto`);
             const data = await weatherRes.json();
 
             const airRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&current=european_aqi`);
@@ -334,6 +356,10 @@ const App = () => {
                     sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     moonPhase: getMoonPhaseDescription(getMoonPhase(new Date())),
+                    uvIndex: Math.round(data.current.uv_index),
+                    visibility: (data.current.visibility / 1000).toFixed(1),
+                    cloudCover: data.current.cloud_cover,
+                    windGusts: Math.round(data.current.wind_gusts_10m),
                     aqi: aqi
                 },
                 hourly: data.hourly,
