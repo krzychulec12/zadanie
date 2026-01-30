@@ -22,21 +22,6 @@ const SearchBar = ({ city, setCity, onSearch, onLocation }) => {
     );
 };
 
-const WeatherCard = ({ data, onAddFavorite, isFavorite }) => {
-    return (
-        <div className="weather-card">
-            <div className="temperature">{data.temp}°C</div>
-            <p className="condition">{data.condition}</p>
-            <button
-                className={`favorite-btn ${isFavorite ? 'active' : ''}`}
-                onClick={onAddFavorite}
-            >
-                {isFavorite ? '❤️ Usuń z ulubionych' : '🤍 Dodaj do ulubionych'}
-            </button>
-        </div>
-    );
-};
-
 const WeatherDetails = ({ data }) => {
     return (
         <div className="weather-details">
@@ -406,6 +391,7 @@ const App = () => {
                 const { latitude, longitude } = pos.coords;
                 let name = "Twoja lokalizacja";
                 let country_code = null;
+                let admin1 = null;
                 try {
                     const geoRes = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${latitude}&longitude=${longitude}&language=pl&format=json`);
                     if (geoRes.ok) {
@@ -413,12 +399,13 @@ const App = () => {
                         if (geoData.results && geoData.results[0]) {
                             name = geoData.results[0].name;
                             country_code = geoData.results[0].country_code;
+                            admin1 = geoData.results[0].admin1;
                         }
                     }
                 } catch (err) { }
                 try {
                     setCity('');
-                    await fetchDataByCoords(latitude, longitude, name, country_code, geoData.results?.[0]?.admin1);
+                    await fetchDataByCoords(latitude, longitude, name, country_code, admin1);
                     showNotification("Lokalizacja znaleziona!", 'success');
                 } catch (err) {
                     showNotification("Błąd: " + err.message, 'error');
@@ -497,6 +484,18 @@ const App = () => {
                         )}
                     </h2>
                     {weatherData.admin1 && <p className="province-name">{weatherData.admin1}</p>}
+                    <div className="header-weather-main">
+                        <div className="main-temperature">{displayData.temp}°C</div>
+                        <div className="main-condition">
+                            <span className="condition-text">{displayData.condition}</span>
+                            <button
+                                className={`favorite-btn header-fav ${isFavorite ? 'active' : ''}`}
+                                onClick={toggleFavorite}
+                            >
+                                {isFavorite ? '❤️' : '🤍'}
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 
