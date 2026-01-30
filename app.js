@@ -409,7 +409,7 @@ const App = () => {
                 }
 
                 try {
-                    setCity(name);
+                    setCity('');
                     await fetchDataByCoords(latitude, longitude, name, country_code);
                     showNotification("Lokalizacja znaleziona!", 'success');
                 } catch (err) {
