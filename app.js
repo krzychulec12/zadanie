@@ -513,7 +513,6 @@ const App = () => {
 
                     <HourSelector selectedHour={selectedHour} onChange={setSelectedHour} />
 
-                    <WeatherCard data={displayData} onAddFavorite={toggleFavorite} isFavorite={isFavorite} />
                     <WeatherDetails data={displayData} />
                     {weatherData.coords && <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} code={displayData.code} timestamp={mapTimestamp} />}
                     <ForecastList
