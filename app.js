@@ -128,12 +128,12 @@ const FavoritesList = ({ favorites, onSelect, onRemove }) => {
     );
 };
 
-// Funkcja pomocnicza do tłumaczenia kodów pogody
-const getWeatherDescription = (code) => {
+// Funkcja pomocnicza do tłumaczenia kodów pogody z uwzględnieniem dnia/nocy
+const getWeatherDescription = (code, isDay = true) => {
     const codes = {
-        0: 'Czyste niebo ☀️',
-        1: 'Przeważnie słonecznie 🌤️',
-        2: 'Częściowe zachmurzenie ⛅',
+        0: isDay ? 'Czyste niebo ☀️' : 'Bezchmurnie 🌙',
+        1: isDay ? 'Przeważnie słonecznie 🌤️' : 'Przeważnie bezchmurnie 🌙',
+        2: isDay ? 'Częściowe zachmurzenie ⛅' : 'Częściowe zachmurzenie ☁️',
         3: 'Pochmurno ☁️',
         45: 'Mgła 🌫️',
         48: 'Mgła osadzająca szadź 🌫️',
@@ -195,17 +195,22 @@ const HourSelector = ({ selectedHour, onChange }) => {
 // Helper function to extract hourly data for a specific hour
 const getHourlyData = (hourly, hour, dayIndex = 0) => {
     const offset = dayIndex * 24 + hour;
+    const rawVisibility = hourly.visibility ? hourly.visibility[offset] : null;
+    // Cap visibility at 24.1 km (meteorological standard for "excellent")
+    const processedVisibility = rawVisibility !== null ? Math.min(rawVisibility / 1000, 24.1).toFixed(1) : '-';
+
     return {
         temp: Math.round(hourly.temperature_2m[offset]),
         code: hourly.weather_code[offset],
+        isDay: hourly.is_day ? !!hourly.is_day[offset] : true,
         precipProb: hourly.precipitation_probability[offset],
         wind: Math.round(hourly.wind_speed_10m[offset]),
-        windDir: hourly.wind_direction_10m[offset],
+        windDir: getWindDirection(hourly.wind_direction_10m[offset]),
         pressure: Math.round(hourly.surface_pressure[offset]),
         humidity: hourly.relative_humidity_2m[offset],
         apparentTemp: Math.round(hourly.apparent_temperature[offset]),
         uvIndex: hourly.uv_index ? Math.round(hourly.uv_index[offset]) : '-',
-        visibility: hourly.visibility ? (hourly.visibility[offset] / 1000).toFixed(1) : '-',
+        visibility: processedVisibility,
         cloudCover: hourly.cloud_cover ? hourly.cloud_cover[offset] : '-',
         windGusts: hourly.wind_gusts_10m ? Math.round(hourly.wind_gusts_10m[offset]) : '-',
         sunrise: "-",
@@ -215,7 +220,8 @@ const getHourlyData = (hourly, hour, dayIndex = 0) => {
 
 // Helper to interpret AQI (European CAQI)
 const getAQIDescription = (aqi) => {
-    if (aqi <= 25) return { text: 'Bardzo dobra 🟢', color: '#57cc99' };
+    if (aqi === null || aqi === undefined) return { text: '-', color: 'inherit' };
+    if (aqi <= 25) return { text: 'Bardzo dobra (Extra) 🟢', color: '#57cc99' };
     if (aqi <= 50) return { text: 'Dobra 🟢', color: '#80ed99' };
     if (aqi <= 75) return { text: 'Umiarkowana 🟡', color: '#ffeb3b' };
     if (aqi <= 100) return { text: 'Zła 🟠', color: '#ff9800' };
@@ -304,7 +310,7 @@ const App = () => {
 
     const fetchDataByCoords = async (latitude, longitude, name, countryCode, admin1) => {
         try {
-            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code,uv_index,visibility,wind_gusts_10m,cloud_cover&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m,uv_index,visibility,wind_gusts_10m,cloud_cover&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max&timezone=auto`);
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,wind_direction_10m,surface_pressure,precipitation_probability,weather_code,uv_index,visibility,wind_gusts_10m,cloud_cover,is_day&hourly=temperature_2m,apparent_temperature,weather_code,precipitation_probability,wind_speed_10m,wind_direction_10m,surface_pressure,relative_humidity_2m,uv_index,visibility,wind_gusts_10m,cloud_cover,is_day&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max&timezone=auto`);
             const data = await weatherRes.json();
 
             const airRes = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${latitude}&longitude=${longitude}&current=european_aqi`);
@@ -330,7 +336,8 @@ const App = () => {
                 current: {
                     temp: Math.round(data.current.temperature_2m),
                     code: data.current.weather_code,
-                    condition: getWeatherDescription(data.current.weather_code),
+                    isDay: !!data.current.is_day,
+                    condition: getWeatherDescription(data.current.weather_code, !!data.current.is_day),
                     humidity: data.current.relative_humidity_2m,
                     wind: Math.round(data.current.wind_speed_10m),
                     windDir: getWindDirection(data.current.wind_direction_10m),
@@ -340,10 +347,10 @@ const App = () => {
                     sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     moonPhase: getMoonPhaseDescription(getMoonPhase(new Date())),
-                    uvIndex: Math.round(data.current.uv_index),
-                    visibility: (data.current.visibility / 1000).toFixed(1),
-                    cloudCover: data.current.cloud_cover,
-                    windGusts: Math.round(data.current.wind_gusts_10m),
+                    uvIndex: data.current.uv_index !== undefined ? Math.round(data.current.uv_index) : '-',
+                    visibility: data.current.visibility !== undefined ? Math.min(data.current.visibility / 1000, 24.1).toFixed(1) : '-',
+                    cloudCover: data.current.cloud_cover !== undefined ? data.current.cloud_cover : '-',
+                    windGusts: data.current.wind_gusts_10m !== undefined ? Math.round(data.current.wind_gusts_10m) : '-',
                     aqi: aqi
                 },
                 hourly: data.hourly,
@@ -446,7 +453,7 @@ const App = () => {
                 city: selectedDayIndex === 0 ? weatherData.city : `${weatherData.city} (${weatherData.forecast[selectedDayIndex - 1].date})`,
                 countryCode: weatherData.countryCode,
                 ...hourly,
-                condition: getWeatherDescription(hourly.code),
+                condition: getWeatherDescription(hourly.code, hourly.isDay),
                 aqi: weatherData.current.aqi,
                 sunrise: selectedDayIndex === 0 ? weatherData.current.sunrise : new Date(weatherData.daily.sunrise[selectedDayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                 sunset: selectedDayIndex === 0 ? weatherData.current.sunset : new Date(weatherData.daily.sunset[selectedDayIndex]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
