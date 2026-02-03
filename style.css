@@ -33,13 +33,16 @@ body {
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
-    padding: 50px;
+    padding: 20px;
+    /* Reduced for mobile */
     border-radius: 32px;
     box-shadow: var(--glass-shadow);
-    width: 98%;
+    width: 95%;
+    /* Slightly more breathing room */
     max-width: 1400px;
     text-align: center;
-    margin: 50px auto;
+    margin: 20px auto;
+    /* Reduced for mobile */
     animation: containerEntrance 1s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -573,6 +576,9 @@ body {
         gap: 30px;
         align-items: start;
         text-align: left;
+        padding: 50px;
+        /* Restore large padding for desktop */
+        margin: 50px auto;
     }
 
     /* Full width elements */

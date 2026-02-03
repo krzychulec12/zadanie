@@ -342,14 +342,15 @@ const App = () => {
                     wind: Math.round(data.current.wind_speed_10m),
                     windDir: getWindDirection(data.current.wind_direction_10m),
                     pressure: Math.round(data.current.surface_pressure),
-                    precipProb: data.current.precipitation_probability || 0,
+                    // Use index-based matching for precipitation probability to ensure accuracy
+                    precipProb: (data.hourly && data.hourly.time) ? data.hourly.precipitation_probability[data.hourly.time.indexOf(data.current.time)] || 0 : 0,
                     apparentTemp: Math.round(data.current.apparent_temperature),
                     sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     moonPhase: getMoonPhaseDescription(getMoonPhase(new Date())),
                     uvIndex: data.current.uv_index !== undefined ? Math.round(data.current.uv_index) : '-',
                     visibility: data.current.visibility !== undefined ? Math.min(data.current.visibility / 1000, 24.1).toFixed(1) : '-',
-                    cloudCover: data.current.cloud_cover !== undefined ? data.current.cloud_cover : '-',
+                    cloudCover: data.current.cloud_cover !== undefined ? data.current.cloud_cover : 0,
                     windGusts: data.current.wind_gusts_10m !== undefined ? Math.round(data.current.wind_gusts_10m) : '-',
                     aqi: aqi
                 },
