@@ -22,11 +22,15 @@ Nowoczesna aplikacja pogodowa stworzona w React przy użyciu API Open-Meteo. Pro
 *   **CSS3** (Glassmorphism, Animations)
 *   **API**: [Open-Meteo](https://open-meteo.com/), [FlagCDN](https://flagcdn.com/)
 
-## 📄 Licencja i Dane
+## 📄 Licencja i Źródła Danych
 
-*   **Pogoda**: [Open-Meteo.com](https://open-meteo.com/) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).
+*   **Dane Pogodowe**: [Open-Meteo.com](https://open-meteo.com/) (Licencja [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).
+*   **Geokodowanie**: [Open-Meteo Geocoding API](https://open-meteo.com/en/docs/geocoding-api).
+*   **Jakość Powietrza**: Open-Meteo Air Quality API (European CAQI Scale).
 *   **Mapy**: [Windy.com](https://www.windy.com/) (Embedded Service).
-*   **Kod**: MIT License.
+*   **Flagi**: [FlagCDN](https://flagcdn.com/).
+*   **Ikona**: Wygenerowana automatycznie (AI).
+*   **Kod aplikacji**: MIT License.
 
 ## 📦 Jak uruchomić?
 
