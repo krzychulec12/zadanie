@@ -1,43 +1,38 @@
 # 🌥️ Pogoda z Kirstofem
-Krzysztof Kania
+**Krzysztof Kania**
 
-Nowoczesna aplikacja pogodowa stworzona w React przy użyciu API Open-Meteo.
-
-## 🚀 O Projekcie
-
-Aplikacja umożliwia sprawdzanie pogody dla dowolnego miasta na świecie. Została zaprojektowana z myślą o prostocie uruchomienia (działa bezpośrednio w przeglądarce bez skomplikowanego procesu budowania) i nowoczesnym wyglądzie (Glassmorphism).
+Nowoczesna aplikacja pogodowa stworzona w React przy użyciu API Open-Meteo. Projekt skupia się na czytelności, nowoczesnym wyglądzie (Glassmorphism) i szybkości działania.
 
 ## ⚡ Funkcjonalności
 
 *   **Wyszukiwanie Miast**: Wpisz nazwę i sprawdź pogodę. Obok miasta wyświetla się flaga kraju.
-*   **📍 Twoja Lokalizacja**: Automatyczne wykrywanie miasta i pogody dla Twojego położenia (z obsługą błędów).
-*   **Aktualna Pogoda**: Temperatura, opis, wilgotność, wiatr (z kierunkiem), ciśnienie.
-*   **🍃 Jakość Powietrza (AQI)**: Monitorowanie zanieczyszczenia powietrza (dane CAQI) z kolorowym wskaźnikiem.
-*   **Pogoda Godzinowa**: Suwak pozwalający sprawdzić prognozę na każdą godzinę.
-*   **Prognoza na 7 Dni**: Długoterminowa prognoza z temperaturami min/max i szansą na deszcz.
-*   **System Ulubionych**: Dodawaj miasta do ulubionych (serduszko), aby mieć do nich szybki dostęp. Lista zapisuje się w przeglądarce.
-*   **Dokładność**: Obsługa rzadkich zjawisk pogodowych (np. marznący deszcz) i precyzyjne dane z Open-Meteo.
+*   **📍 Twoja Lokalizacja**: Automatyczne wykrywanie miasta i pogody dla Twojego położenia.
+*   **Aktualna Pogoda**: Pełna statystyka (temperatura, wilgotność, wiatr, ciśnienie, indeks UV, widoczność).
+*   **🗺️ Mapa Pogodowa**: Interaktywna mapa z Windy.com (wiatr, deszcz, chmury).
+*   **🍃 Jakość Powietrza (AQI)**: Monitorowanie zanieczyszczenia powietrza (dane CAQI).
+*   **Pogoda Godzinowa**: Suwak pozwalający sprawdzić prognozę na dowolną godzinę.
+*   **Prognoza na 7 Dni**: Długoterminowa prognoza z temperaturami min/max.
+*   **System Ulubionych**: Możliwość zapisywania miast w przeglądarce.
+*   **Tryb Dzień/Noc**: Ikony i opisy zmieniające się w zależności od pory dnia.
 
 ## 🛠️ Technologie
 
-*   **React 18** (via CDN)
-*   **Babel Standalone** (do kompilacji JSX w locie)
-*   **CSS3** (Glassmorphism, Flexbox, Animations)
-*   **API**: [Open-Meteo](https://open-meteo.com/) (Pogoda), [FlagCDN](https://flagcdn.com/) (Flagi)
+*   **React 18** (CDN)
+*   **Babel Standalone**
+*   **CSS3** (Glassmorphism, Animations)
+*   **API**: [Open-Meteo](https://open-meteo.com/), [FlagCDN](https://flagcdn.com/)
+
+## 📄 Licencja i Dane
+
+*   **Pogoda**: [Open-Meteo.com](https://open-meteo.com/) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).
+*   **Mapy**: [Windy.com](https://www.windy.com/) (Embedded Service).
+*   **Kod**: MIT License.
 
 ## 📦 Jak uruchomić?
 
-1.  Upewnij się, że masz połączenie z internetem (do ładowania Reacta i danych z API).
-2.  Otwórz plik `index.html` w dowolnej nowoczesnej przeglądarce.
-3.  To wszystko! Nie musisz nic instalować.
+1.  Upewnij się, że masz połączenie z internetem.
+2.  Otwórz plik `index.html` w przeglądarce.
 
 ---
-
-## 📄 Licencja i Źródła Danych
-
-*   **Dane Pogodowe**: [Open-Meteo.com](https://open-meteo.com/) (Licencja CC BY 4.0). Do celów niekomercyjnych limit zapytań jest darmowy.
-*   **Flagi**: [FlagCDN](https://flagcdn.com/).
-*   **Ikona**: Wygenerowana automatycznie (AI).
-
----
+*Pogoda z Kirstofem - 2026*
 

@@ -101,6 +101,16 @@ body {
     letter-spacing: -2px;
 }
 
+@media (max-width: 450px) {
+    .main-temperature {
+        font-size: 4.5rem;
+    }
+
+    .condition-text {
+        font-size: 1.8rem;
+    }
+}
+
 .header-weather-main {
     display: flex;
     align-items: center;
@@ -616,4 +626,18 @@ body {
         grid-template-columns: repeat(3, 1fr);
         gap: 15px;
     }
+}
+
+.footer {
+    margin-top: 40px;
+    padding: 20px 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--glass-border);
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.footer:hover {
+    color: var(--text-secondary);
 }

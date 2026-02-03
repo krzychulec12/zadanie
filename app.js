@@ -299,8 +299,13 @@ const App = () => {
     };
 
     React.useEffect(() => {
-        const saved = localStorage.getItem('skycast_favorites');
-        if (saved) setFavorites(JSON.parse(saved));
+        try {
+            const saved = localStorage.getItem('skycast_favorites');
+            if (saved) setFavorites(JSON.parse(saved));
+        } catch (err) {
+            console.error("Błąd ładowania ulubionych:", err);
+            localStorage.removeItem('skycast_favorites');
+        }
     }, []);
 
     const saveFavorites = (newFavorites) => {
@@ -342,8 +347,8 @@ const App = () => {
                     wind: Math.round(data.current.wind_speed_10m),
                     windDir: getWindDirection(data.current.wind_direction_10m),
                     pressure: Math.round(data.current.surface_pressure),
-                    // Use index-based matching for precipitation probability to ensure accuracy
-                    precipProb: (data.hourly && data.hourly.time) ? data.hourly.precipitation_probability[data.hourly.time.indexOf(data.current.time)] || 0 : 0,
+                    // Use hourly data for probability as Open-Meteo doesn't provide it in 'current'
+                    precipProb: (data.hourly && data.hourly.time && data.current.time) ? data.hourly.precipitation_probability[data.hourly.time.indexOf(data.current.time)] || 0 : 0,
                     apparentTemp: Math.round(data.current.apparent_temperature),
                     sunrise: new Date(data.daily.sunrise[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
                     sunset: new Date(data.daily.sunset[0]).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
