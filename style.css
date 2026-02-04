@@ -581,13 +581,12 @@ body {
 /* Wide Dashboard Layout */
 @media (min-width: 768px) {
     .container {
-        display: grid;
-        grid-template-columns: 1fr 2fr;
+        display: flex;
+        flex-direction: column;
         gap: 30px;
-        align-items: start;
-        text-align: left;
+        align-items: center;
+        text-align: center;
         padding: 50px;
-        /* Restore large padding for desktop */
         margin: 50px auto;
     }
 
@@ -600,8 +599,10 @@ body {
     .hour-selector,
     .weather-map-container,
     .forecast-section,
-    .favorites-section {
-        grid-column: 1 / -1;
+    .favorites-section,
+    .weather-details {
+        width: 100%;
+        max-width: 1200px;
     }
 
     .header h1 {
@@ -619,12 +620,12 @@ body {
         text-align: center;
     }
 
-    /* Right Column: Details */
+    /* Results: Details */
     .weather-details {
-        grid-column: 2 / 3;
-        margin: 0;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 15px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin: 20px 0;
     }
 }
 

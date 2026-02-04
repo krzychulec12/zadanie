@@ -1,131 +1,133 @@
+const html = htm.bind(React.createElement);
+
 const Header = () => {
-    return (
+    return html`
         <header className="header">
             <h1>🌥️ Pogoda z Kirstofem</h1>
         </header>
-    );
+    `;
 };
 
 const SearchBar = ({ city, setCity, onSearch, onLocation }) => {
-    return (
+    return html`
         <div className="search-bar">
             <input
                 type="text"
                 placeholder="Wpisz nazwę miasta..."
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && onSearch()}
+                value=${city}
+                onChange=${(e) => setCity(e.target.value)}
+                onKeyPress=${(e) => e.key === 'Enter' && onSearch()}
             />
-            <button onClick={onLocation} className="location-btn" title="Twoja lokalizacja">📍</button>
-            <button onClick={onSearch}>Szukaj</button>
+            <button onClick=${onLocation} className="location-btn" title="Twoja lokalizacja">📍</button>
+            <button onClick=${onSearch}>Szukaj</button>
         </div>
-    );
+    `;
 };
 
 const WeatherDetails = ({ data }) => {
-    return (
+    return html`
         <div className="weather-details">
             <div className="detail-item">
                 <span>💧 Wilgotność</span>
-                <strong>{data.humidity}%</strong>
+                <strong>${data.humidity}%</strong>
             </div>
             <div className="detail-item">
                 <span>💨 Wiatr</span>
-                <strong>{data.wind} km/h {data.windDir}</strong>
+                <strong>${data.wind} km/h ${data.windDir}</strong>
             </div>
             <div className="detail-item">
                 <span>🌡️ Odczuwalna</span>
-                <strong>{data.apparentTemp}°C</strong>
+                <strong>${data.apparentTemp}°C</strong>
             </div>
             <div className="detail-item">
                 <span>🔽 Ciśnienie</span>
-                <strong>{data.pressure} hPa</strong>
+                <strong>${data.pressure} hPa</strong>
             </div>
             <div className="detail-item">
                 <span>☔ Szansa na opady</span>
-                <strong>{data.precipProb}%</strong>
+                <strong>${data.precipProb}%</strong>
             </div>
-            {data.uvIndex !== undefined && (
+            ${data.uvIndex !== undefined && html`
                 <div className="detail-item">
                     <span>☀️ Indeks UV</span>
-                    <strong>{data.uvIndex}</strong>
+                    <strong>${data.uvIndex}</strong>
                 </div>
-            )}
+            `}
             <div className="detail-item">
                 <span>👁️ Widoczność</span>
-                <strong>{data.visibility} km</strong>
+                <strong>${data.visibility} km</strong>
             </div>
             <div className="detail-item">
                 <span>☁️ Zachmurzenie</span>
-                <strong>{data.cloudCover}%</strong>
+                <strong>${data.cloudCover}%</strong>
             </div>
             <div className="detail-item">
                 <span>🌬️ Porywy wiatru</span>
-                <strong>{data.windGusts} km/h</strong>
+                <strong>${data.windGusts} km/h</strong>
             </div>
-            {data.aqi !== undefined && (
+            ${data.aqi !== undefined && html`
                 <div className="detail-item">
                     <span>🍃 Jakość powietrza</span>
-                    <strong style={{ color: getAQIDescription(data.aqi).color }}>
-                        {getAQIDescription(data.aqi).text} (AQI: {data.aqi})
+                    <strong style=${{ color: getAQIDescription(data.aqi).color }}>
+                        ${getAQIDescription(data.aqi).text} (AQI: ${data.aqi})
                     </strong>
                 </div>
-            )}
+            `}
             <div className="detail-item">
                 <span>🌅 Wschód / Zachód</span>
-                <strong>{data.sunrise} / {data.sunset}</strong>
+                <strong>${data.sunrise} / ${data.sunset}</strong>
             </div>
             <div className="detail-item">
                 <span>🌑 Faza Księżyca</span>
-                <strong>{data.moonPhase}</strong>
+                <strong>${data.moonPhase}</strong>
             </div>
         </div>
-    );
+    `;
 };
 
 const ForecastList = ({ forecast, selectedDayIndex, onSelectDay }) => {
     if (!forecast) return null;
 
-    return (
+    return html`
         <div className="forecast-section">
             <h3>Prognoza na kolejne dni</h3>
             <div className="forecast-grid">
-                {forecast.map((day, index) => (
+                ${forecast.map((day, index) => html`
                     <div
-                        key={index}
-                        className={`forecast-item ${selectedDayIndex === index + 1 ? 'active' : ''}`}
-                        onClick={() => onSelectDay(index + 1)}
-                        style={{ cursor: 'pointer' }}
+                        key=${index}
+                        className=${`forecast-item ${selectedDayIndex === index + 1 ? 'active' : ''}`}
+                        onClick=${() => onSelectDay(index + 1)}
+                        style=${{ cursor: 'pointer' }}
                     >
-                        <span className="date">{day.date}</span>
-                        <span className="icon">{day.icon}</span>
+                        <span className="date">${day.date}</span>
+                        <span className="icon">${day.icon}</span>
                         <div className="temps">
-                            <span className="max">{day.maxTemp}°</span> / <span className="min">{day.minTemp}°</span>
+                            <span className="max">${day.maxTemp}°</span> / <span className="min">${day.minTemp}°</span>
                         </div>
-                        <span className="rain">☔ {day.precipProb}%</span>
+                        <span className="rain">☔ ${day.precipProb}%</span>
                     </div>
-                ))}
+                `)}
             </div>
         </div>
-    );
+    `;
 };
 
 const FavoritesList = ({ favorites, onSelect, onRemove }) => {
     if (favorites.length === 0) return null;
 
-    return (
+    return html`
         <div className="favorites-section">
             <h3>Twoje Ulubione</h3>
             <div className="favorites-list">
-                {favorites.map(city => (
-                    <div key={city} className="favorite-item">
-                        <span onClick={() => onSelect(city)}>{city}</span>
-                        <button onClick={() => onRemove(city)}>❌</button>
+                ${favorites.map(city => html`
+                    <div key=${city} className="favorite-item">
+                        <span onClick=${() => onSelect(city)}>${city}</span>
+                        <button onClick=${() => onRemove(city)}>❌</button>
                     </div>
-                ))}
+                `)}
             </div>
         </div>
-    );
+    `;
 };
 
 // Funkcja pomocnicza do tłumaczenia kodów pogody z uwzględnieniem dnia/nocy
@@ -170,26 +172,26 @@ const getWindDirection = (degrees) => {
 };
 
 const HourSelector = ({ selectedHour, onChange }) => {
-    return (
+    return html`
         <div className="hour-selector">
-            <label>Sprawdź godzinę: <strong>{selectedHour === null ? 'Teraz' : `${selectedHour}:00`}</strong></label>
+            <label>Sprawdź godzinę: <strong>${selectedHour === null ? 'Teraz' : `${selectedHour}:00`}</strong></label>
             <input
                 type="range"
                 min="0"
                 max="23"
-                value={selectedHour === null ? new Date().getHours() : selectedHour}
-                onChange={(e) => onChange(parseInt(e.target.value))}
+                value=${selectedHour === null ? new Date().getHours() : selectedHour}
+                onChange=${(e) => onChange(parseInt(e.target.value))}
             />
             <div className="hour-labels">
                 <span>00:00</span>
                 <span>12:00</span>
                 <span>23:00</span>
             </div>
-            {selectedHour !== null && (
-                <button className="reset-hour-btn" onClick={() => onChange(null)}>Wróc do "Teraz"</button>
-            )}
+            ${selectedHour !== null && html`
+                <button className="reset-hour-btn" onClick=${() => onChange(null)}>Wróc do "Teraz"</button>
+            `}
         </div>
-    );
+    `;
 };
 
 // Helper function to extract hourly data for a specific hour
@@ -262,11 +264,11 @@ const WeatherMap = ({ lat, lon, code, timestamp }) => {
     const timeKey = timestamp ? timestamp.getTime() : 'now';
     const embedUrl = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&width=650&height=450&zoom=10&level=surface&overlay=${overlay}&product=ecmwf&menu=&message=&marker=&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1&t=${timeKey}`;
 
-    return (
+    return html`
         <div className="weather-map-container">
-            <iframe key={timeKey} title="Mapa Pogodowa" src={embedUrl}></iframe>
+            <iframe key=${timeKey} title="Mapa Pogodowa" src=${embedUrl}></iframe>
         </div>
-    );
+    `;
 };
 
 const NotificationWidget = ({ message, type, onClose }) => {
@@ -274,13 +276,13 @@ const NotificationWidget = ({ message, type, onClose }) => {
     let icon = 'ℹ️';
     if (type === 'error') icon = '⚠️';
     if (type === 'success') icon = '✅';
-    return (
-        <div className={`notification-widget ${type}`}>
-            <span>{icon}</span>
-            <span>{message}</span>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', marginLeft: 'auto', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
+    return html`
+        <div className=${`notification-widget ${type}`}>
+            <span>${icon}</span>
+            <span>${message}</span>
+            <button onClick=${onClose} style=${{ background: 'none', border: 'none', color: 'white', marginLeft: 'auto', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
         </div>
-    );
+    `;
 };
 
 
@@ -476,69 +478,69 @@ const App = () => {
         }
     }
 
-    return (
+    return html`
         <div className="container">
-            <Header />
-            <SearchBar city={city} setCity={setCity} onSearch={() => fetchWeather(city)} onLocation={fetchUserLocation} />
+            <${Header} />
+            <${SearchBar} city=${city} setCity=${setCity} onSearch=${() => fetchWeather(city)} onLocation=${fetchUserLocation} />
 
-            {loading && <p>Ładowanie...</p>}
-            {notification && <NotificationWidget message={notification.message} type={notification.type} onClose={() => setNotification(null)} />}
+            ${loading && html`<p>Ładowanie...</p>`}
+            ${notification && html`<${NotificationWidget} message=${notification.message} type=${notification.type} onClose=${() => setNotification(null)} />`}
 
-            {weatherData && displayData && (
+            ${weatherData && displayData && html`
                 <div className="location-header">
                     <h2>
-                        {weatherData.city}
-                        {weatherData.countryCode && (
+                        ${weatherData.city}
+                        ${weatherData.countryCode && html`
                             <img
-                                src={`https://flagcdn.com/h40/${weatherData.countryCode.toLowerCase()}.png`}
+                                src=${`https://flagcdn.com/h40/${weatherData.countryCode.toLowerCase()}.png`}
                                 alt="flag"
-                                style={{ marginLeft: '15px', height: '30px', borderRadius: '4px', verticalAlign: 'middle' }}
+                                style=${{ marginLeft: '15px', height: '30px', borderRadius: '4px', verticalAlign: 'middle' }}
                             />
-                        )}
+                        `}
                     </h2>
-                    {weatherData.admin1 && <p className="province-name">{weatherData.admin1}</p>}
+                    ${weatherData.admin1 && html`<p className="province-name">${weatherData.admin1}</p>`}
                     <div className="header-weather-main">
-                        <div className="main-temperature">{displayData.temp}°C</div>
+                        <div className="main-temperature">${displayData.temp}°C</div>
                         <div className="main-condition">
-                            <span className="condition-text">{displayData.condition}</span>
+                            <span className="condition-text">${displayData.condition}</span>
                             <button
-                                className={`favorite-btn header-fav ${isFavorite ? 'active' : ''}`}
-                                onClick={toggleFavorite}
+                                className=${`favorite-btn header-fav ${isFavorite ? 'active' : ''}`}
+                                onClick=${toggleFavorite}
                             >
-                                {isFavorite ? '❤️' : '🤍'}
+                                ${isFavorite ? '❤️' : '🤍'}
                             </button>
                         </div>
                     </div>
                 </div>
-            )}
+            `}
 
-            {weatherData && displayData && (
-                <>
+            ${weatherData && displayData && html`
+                <${React.Fragment}>
                     <div className="top-controls">
                         <button
-                            className={`favorite-btn ${selectedDayIndex === 0 ? 'active' : ''}`}
-                            onClick={() => { setSelectedDayIndex(0); setSelectedHour(null); }}
-                            style={{ padding: '10px 20px', borderRadius: '15px' }}
+                            className=${`favorite-btn ${selectedDayIndex === 0 ? 'active' : ''}`}
+                            onClick=${() => { setSelectedDayIndex(0); setSelectedHour(null); }}
+                            style=${{ padding: '10px 20px', borderRadius: '15px' }}
                         >
                             Dzisiaj
                         </button>
                     </div>
 
-                    <HourSelector selectedHour={selectedHour} onChange={setSelectedHour} />
+                    <${HourSelector} selectedHour=${selectedHour} onChange=${setSelectedHour} />
 
-                    <WeatherDetails data={displayData} />
-                    {weatherData.coords && <WeatherMap lat={weatherData.coords.lat} lon={weatherData.coords.lon} code={displayData.code} timestamp={mapTimestamp} />}
-                    <ForecastList
-                        forecast={weatherData.forecast}
-                        selectedDayIndex={selectedDayIndex}
-                        onSelectDay={(idx) => { setSelectedDayIndex(idx); setSelectedHour(null); }}
+                    <${WeatherDetails} data=${displayData} />
+                    ${weatherData.coords && html`<${WeatherMap} lat=${weatherData.coords.lat} lon=${weatherData.coords.lon} code=${displayData.code} timestamp=${mapTimestamp} />`}
+                    <${ForecastList}
+                        forecast=${weatherData.forecast}
+                        selectedDayIndex=${selectedDayIndex}
+                        onSelectDay=${(idx) => { setSelectedDayIndex(idx); setSelectedHour(null); }}
                     />
-                </>
-            )}
-            <FavoritesList favorites={favorites} onSelect={fetchWeather} onRemove={removeFavorite} />
+                <//>
+            `}
+            <${FavoritesList} favorites=${favorites} onSelect=${fetchWeather} onRemove=${removeFavorite} />
         </div>
-    );
+    `;
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
+root.render(html`<${App} />`);
